@@ -49,7 +49,7 @@ export function ArticleLayout({ children }: { children: React.ReactNode }) {
   return (
     <EditorModeProvider>
       <div className="min-h-screen bg-background text-foreground">
-        <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {children}
         </main>
       </div>
@@ -71,6 +71,7 @@ interface ArticleHeaderProps {
   authorName?: string
   authorUrl?: string
   avatarSrc?: string
+  editorId?: string
 }
 
 export function ArticleHeader({
@@ -143,6 +144,7 @@ interface ArticleFooterProps {
   fellowLink?: string
   fellowUrl?: string
   copyright: string
+  editorId?: string
 }
 
 export function ArticleFooter({ role, fellowAt, fellowLink, fellowUrl, copyright }: ArticleFooterProps) {
@@ -202,7 +204,7 @@ interface FaqItem {
   a: string
 }
 
-export function FaqSection({ heading, items }: { heading: string; items: readonly FaqItem[] }) {
+export function FaqSection({ heading, items }: { heading: string; items: readonly FaqItem[]; editorId?: string }) {
   return (
     <>
       <H2 id="faq">{heading}</H2>
@@ -230,7 +232,7 @@ interface ResourceItem {
   url: string
 }
 
-export function ResourcesList({ heading, items }: { heading: string; items: readonly ResourceItem[] }) {
+export function ResourcesList({ heading, items }: { heading: string; items: readonly ResourceItem[]; editorId?: string }) {
   return (
     <>
       <H2 id="resources">{heading}</H2>
@@ -255,7 +257,7 @@ interface LessonItem {
   detail: string
 }
 
-export function LessonsSection({ heading, items }: { heading: string; items: readonly LessonItem[] }) {
+export function LessonsSection({ heading, items }: { heading: string; items: readonly LessonItem[]; editorId?: string }) {
   return (
     <>
       <H2 id="lessons">{heading}</H2>
@@ -284,13 +286,19 @@ interface MetricCard {
   detail?: string
 }
 
-export function MetricsGrid({ items }: { items: readonly MetricCard[] }) {
+const metricsColsMap = {
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+  5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
+} as const
+
+export function MetricsGrid({ items, columns = 3, compact }: { items: readonly MetricCard[]; columns?: 3 | 4 | 5; compact?: boolean }) {
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    <div className={`grid ${metricsColsMap[columns]} gap-4 mb-8`}>
       {items.map((item) => (
-        <div key={item.label} className="bg-card border border-border rounded-lg p-5 text-center">
-          <p className="text-3xl font-bold text-primary mb-1">{item.value}</p>
-          <p className="font-medium text-foreground text-sm">{item.label}</p>
+        <div key={item.label} className={`bg-card border border-border rounded-lg ${compact ? 'p-2.5 sm:p-3' : 'p-5'} text-center`}>
+          <p className={`${compact ? 'text-lg sm:text-xl' : 'text-3xl'} font-bold text-primary mb-1`}>{item.value}</p>
+          <p className={`font-medium text-foreground ${compact ? 'text-xs' : 'text-sm'}`}>{item.label}</p>
           {item.detail && <p className="text-xs text-muted-foreground mt-1">{item.detail}</p>}
         </div>
       ))}
@@ -308,33 +316,46 @@ interface CaseStudyCtaProps {
   ctaLabel: string
   ctaHref: string
   external?: boolean
+  secondaryLabel?: string
+  secondaryHref?: string
+  editorId?: string
 }
 
-export function CaseStudyCta({ heading, body, ctaLabel, ctaHref, external }: CaseStudyCtaProps) {
+export function CaseStudyCta({ heading, body, ctaLabel, ctaHref, external, secondaryLabel, secondaryHref }: CaseStudyCtaProps) {
   return (
     <EditorLabel name="CaseStudyCta">
       <div className="my-10 relative rounded-2xl p-[1.5px] bg-gradient-theme">
         <div className="p-6 sm:p-8 rounded-[calc(1rem-1.5px)] bg-card">
           <p className="font-display font-semibold text-foreground text-lg mb-2">{heading}</p>
           <p className="text-muted-foreground leading-relaxed mb-4">{body}</p>
-          {external ? (
-            <a
-              href={ctaHref}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm"
-            >
-              {ctaLabel}
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          ) : (
-            <Link
-              to={ctaHref}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm"
-            >
-              {ctaLabel}
-            </Link>
-          )}
+          <div className="flex gap-3">
+            {external ? (
+              <a
+                href={ctaHref}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm"
+              >
+                {ctaLabel}
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            ) : (
+              <Link
+                to={ctaHref}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm"
+              >
+                {ctaLabel}
+              </Link>
+            )}
+            {secondaryHref && secondaryLabel && (
+              <a
+                href={secondaryHref}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-card border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+              >
+                {secondaryLabel}
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </EditorLabel>
@@ -383,7 +404,7 @@ export function InlineWorkflowDownload({ href, label, fileSize }: { href: string
     <a
       href={href}
       download
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
     >
       <Download className="w-3.5 h-3.5" />
       {label}
@@ -393,7 +414,7 @@ export function InlineWorkflowDownload({ href, label, fileSize }: { href: string
 }
 
 interface WorkflowDownloadCardProps {
-  icon: string
+  icon: React.ReactNode
   name: string
   subtitle: string
   description: string
@@ -408,7 +429,7 @@ export function WorkflowDownloadCard({ icon, name, subtitle, description, href, 
   return (
     <div className="bg-card border border-border rounded-lg p-5 flex flex-col">
       <div className="flex items-start gap-3 mb-3">
-        <span className="text-2xl shrink-0">{icon}</span>
+        <span className="shrink-0 text-primary">{icon}</span>
         <div className="min-w-0">
           <h4 className="font-display font-semibold text-foreground text-sm leading-tight">{name}</h4>
           <p className="text-xs text-muted-foreground">{subtitle}</p>
@@ -429,5 +450,71 @@ export function WorkflowDownloadCard({ icon, name, subtitle, description, href, 
         {downloadLabel}
       </a>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// WorkflowGrid — grid of WorkflowDownloadCards with icon resolver
+// ---------------------------------------------------------------------------
+
+interface WorkflowGridProps {
+  workflows: readonly { id: string; icon: string; name: string; subtitle: string; description: string; href: string; fileSize: string; nodes?: string; llm?: string }[]
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>
+  fallbackIcon: React.ComponentType<{ className?: string }>
+  downloadLabel: string
+  editorId?: string
+}
+
+export function WorkflowGrid({ workflows, iconMap, fallbackIcon: Fallback, downloadLabel, editorId }: WorkflowGridProps) {
+  return (
+    <EditorLabel name="WorkflowGrid" id={editorId}>
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        {workflows.map(wf => {
+          const Icon = iconMap[wf.icon] ?? Fallback
+          return (
+            <WorkflowDownloadCard
+              key={wf.id}
+              icon={<Icon className="w-5 h-5" />}
+              name={wf.name}
+              subtitle={wf.subtitle}
+              description={wf.description}
+              href={wf.href}
+              fileSize={wf.fileSize}
+              nodes={wf.nodes}
+              llm={wf.llm}
+              downloadLabel={downloadLabel}
+            />
+          )
+        })}
+      </div>
+    </EditorLabel>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// DownloadAllButton — prominent CTA for bulk download
+// ---------------------------------------------------------------------------
+
+interface DownloadAllButtonProps {
+  href: string
+  label: string
+  fileSize: string
+  editorId?: string
+}
+
+export function DownloadAllButton({ href, label, fileSize, editorId }: DownloadAllButtonProps) {
+  return (
+    <EditorLabel name="DownloadAllButton" id={editorId}>
+      <div className="flex justify-center mb-8">
+        <a
+          href={href}
+          download
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm"
+        >
+          <Download className="w-4 h-4" />
+          {label} <span className="text-primary-foreground/70">{fileSize}</span>
+        </a>
+      </div>
+    </EditorLabel>
   )
 }

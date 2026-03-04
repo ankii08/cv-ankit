@@ -12,7 +12,8 @@ import {
   MetricsGrid,
   CaseStudyCta,
   InlineWorkflowDownload,
-  WorkflowDownloadCard,
+  WorkflowGrid,
+  DownloadAllButton,
 } from './articles/components'
 import {
   H2,
@@ -37,6 +38,7 @@ import {
   Timeline,
   ScreenshotGrid,
   ScreenshotCaption,
+  DetailCard,
 } from './articles/content-types'
 import { jacoboContent } from './jacobo-i18n'
 
@@ -363,7 +365,7 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
   return (
     <ArticleLayout>
       <FloatingToc />
-      <ArticleHeader kicker={t.header.kicker} h1={t.header.h1} subtitle={t.header.subtitle} date={t.header.date} readingTime={t.readingTime} />
+      <ArticleHeader editorId="hero-header" kicker={t.header.kicker} h1={t.header.h1} subtitle={t.header.subtitle} date={t.header.date} readingTime={t.readingTime} />
 
       {/* Proof of exit badge */}
       {'badge' in t.header && (
@@ -376,17 +378,10 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
       )}
 
       {/* Hero metrics banner */}
-      <div className="grid grid-cols-5 gap-2 sm:gap-3 mb-6 -mx-2 sm:mx-0">
-        {t.heroMetrics.map((m) => (
-          <div key={m.label} className="bg-card border border-border rounded-lg p-2.5 sm:p-3 text-center">
-            <p className="text-lg sm:text-xl font-display font-bold text-primary">{m.value}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{m.label}</p>
-          </div>
-        ))}
-      </div>
+      <MetricsGrid items={t.heroMetrics} columns={5} compact />
 
       {/* TL;DR */}
-      <Callout className="-mx-2 sm:mx-0">{t.tldr}</Callout>
+      <Callout editorId="tldr-callout" className="-mx-2 sm:mx-0">{t.tldr}</Callout>
 
       {/* Open source badge */}
       <div className="flex items-center gap-2 text-xs text-primary mb-6">
@@ -395,43 +390,43 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
       </div>
 
       {/* Hero images */}
-      <Photo2 items={[
+      <Photo2 editorId="hero-photos" items={[
         { src: '/jacobo/shop-counter-smart-displays.webp', alt: lang === 'es' ? 'Mostrador de Santifer iRepair con smart displays' : 'Santifer iRepair counter with smart displays', loading: 'eager' },
         { src: '/jacobo/shop-diagnostic-screen.webp', alt: lang === 'es' ? 'Pantalla de diagnóstico en la tienda' : 'Diagnostic screen in the shop', loading: 'eager' },
       ]} />
 
       <article className="prose-custom">
         {/* ---- Intro ---- */}
-        <Prose variant="hook">{t.intro.hook}</Prose>
-        <Prose className="mb-8">{t.intro.body}</Prose>
+        <Prose editorId="intro-hook" variant="hook">{t.intro.hook}</Prose>
+        <Prose editorId="intro-body" className="mb-8">{t.intro.body}</Prose>
 
         {/* ================================================================ */}
         {/*  THE PROBLEM                                                     */}
         {/* ================================================================ */}
         <H2 id="the-problem">{t.sections.theProblem.heading}</H2>
-        <Prose>{t.sections.theProblem.body}</Prose>
+        <Prose editorId="problem-body">{t.sections.theProblem.body}</Prose>
 
         {/* Pain points card */}
-        <InfoCard>
-          <BulletList items={t.sections.theProblem.painPoints} variant="in-card" />
+        <InfoCard editorId="problem-pain-points">
+          <BulletList editorId="problem-pain-points-list" items={t.sections.theProblem.painPoints} variant="in-card" />
         </InfoCard>
 
         {/* Santiago + Microsoldering */}
-        <Photo2 items={[
+        <Photo2 editorId="problem-santiago-microsoldering" items={[
           { src: '/jacobo/santiago-headphones-thinking.webp', alt: 'Santiago Fernández de Valderrama' },
           { src: '/jacobo/shop-microsoldering-station.webp', alt: lang === 'es' ? 'Estación de microsoldadura en Santifer iRepair' : 'Microsoldering station at Santifer iRepair' },
-        ]} />
-        <ScreenshotCaption lang={lang} es="Cada llamada interrumpe una reparación en curso: el técnico deja la microsoldadura para atender al teléfono" en="Every call interrupts a repair in progress: the technician leaves the microsoldering station to answer the phone" />
+        ]} caption={lang === 'es' ? 'Cada llamada interrumpe una reparación en curso: el técnico deja la microsoldadura para atender al teléfono' : 'Every call interrupts a repair in progress: the technician leaves the microsoldering station to answer the phone'} />
 
         {/* Alternatives */}
-        <Prose>{t.sections.theProblem.alternatives.body}</Prose>
-        <CardStack items={t.sections.theProblem.alternatives.items.map(item => ({ title: item.tool, detail: item.issue }))} />
-        <Callout>{t.sections.theProblem.alternatives.punchline}</Callout>
+        <Prose editorId="problem-alternatives-body">{t.sections.theProblem.alternatives.body}</Prose>
+        <CardStack editorId="problem-alternatives-stack" items={t.sections.theProblem.alternatives.items.map(item => ({ title: item.tool, detail: item.issue }))} />
+        <Callout editorId="problem-alternatives-punchline">{t.sections.theProblem.alternatives.punchline}</Callout>
 
         {/* POS photo + Business OS cross-link */}
-        <Photo1 src="/jacobo/before-checkout-pos.webp" alt={lang === 'es' ? 'POS legacy antes de la transformación' : 'Legacy POS before transformation'} />
+        <Photo1 editorId="problem-pos-legacy" src="/jacobo/before-checkout-pos.webp" alt={lang === 'es' ? 'POS legacy antes de la transformación' : 'Legacy POS before transformation'} caption={lang === 'es' ? 'El viejo POS: facturación, stock y precios de piezas en un software que no se integraba con nada' : 'The old POS system: invoicing, stock and part prices in software that integrated with nothing'} />
 
         <CaseStudyCta
+          editorId="problem-business-os-cta"
           heading={lang === 'es' ? 'Este POS fue el primer problema que resolví' : 'This POS was the first problem I solved'}
           body={lang === 'es'
             ? 'Antes de construir Jacobo, reemplacé este sistema legacy por un ERP custom sobre Airtable. Esa base de datos es la que Jacobo consulta hoy.'
@@ -444,105 +439,99 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
         {/*  ARCHITECTURE                                                    */}
         {/* ================================================================ */}
         <H2 id="architecture">{t.sections.architecture.heading}</H2>
-        <Prose>{t.sections.architecture.body}</Prose>
+        <Prose editorId="architecture-body">{t.sections.architecture.body}</Prose>
 
         {/* Architecture diagram */}
-        <Photo1 src={`/jacobo/architecture-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Diagrama de arquitectura de Jacobo' : 'Jacobo architecture diagram'} />
+        <Photo1 editorId="architecture-diagram" src={`/jacobo/architecture-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Diagrama de arquitectura de Jacobo' : 'Jacobo architecture diagram'} />
 
         {/* Stack */}
         <H3 id="stack">Stack</H3>
-        <Prose>{t.sections.architecture.stackIntro}</Prose>
-        <StackGrid items={t.sections.architecture.stack.map(s => ({ icon: stackIcons[s.name], name: s.name, desc: s.role }))} />
+        <Prose editorId="stack-intro">{t.sections.architecture.stackIntro}</Prose>
+        <StackGrid editorId="stack-grid" items={t.sections.architecture.stack.map(s => ({ icon: stackIcons[s.name], name: s.name, desc: s.role }))} />
 
         {/* Why sub-agents */}
         <H3 id="why-sub-agents">{t.sections.architecture.whySubAgents.heading}</H3>
-        <BulletList items={t.sections.architecture.whySubAgents.reasons.map(r => ({ label: r.title, detail: r.detail }))} className="mb-8" />
+        <BulletList editorId="why-sub-agents-reasons" items={t.sections.architecture.whySubAgents.reasons.map(r => ({ label: r.title, detail: r.detail }))} className="mb-8" />
 
         {/* The 7 agents */}
         <H3 id="the-seven-agents">{t.sections.architecture.agentsHeading}</H3>
-        <Prose className="mb-6">{t.sections.architecture.agentsBody}</Prose>
+        <Prose editorId="agents-intro" className="mb-6">{t.sections.architecture.agentsBody}</Prose>
 
         {/* Agents grid */}
         <CardGrid
+          editorId="agents-grid"
           items={t.sections.architecture.agents.filter(a => a.kind === 'agent')}
-          columns={2}
+          columns={1}
           gap="gap-4"
           className="mb-4"
           renderItem={(agent) => {
             const Icon = AGENT_ICONS[agent.icon] ?? Compass
             return (
-              <div key={agent.name} className="bg-card border border-border rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icon className="w-5 h-5 text-primary" />
-                  <h4 className="font-display font-semibold text-foreground text-sm">{agent.name}</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">{agent.desc}</p>
+              <DetailCard key={agent.name} icon={<Icon className="w-5 h-5 text-primary" />} title={agent.name} description={agent.desc}>
                 <BulletList items={agent.details} variant="in-card" />
-              </div>
+              </DetailCard>
             )
           }}
         />
 
         {/* Tools grid */}
-        <NodeLabel className="uppercase tracking-wider font-medium">{t.sections.architecture.toolsLabel}</NodeLabel>
+        <NodeLabel editorId="tools-label" className="uppercase tracking-wider font-medium">{t.sections.architecture.toolsLabel}</NodeLabel>
         <CardGrid
+          editorId="tools-grid"
           items={t.sections.architecture.agents.filter(a => a.kind === 'tool')}
-          columns={3}
+          columns={1}
           className="mb-8"
           renderItem={(tool) => {
             const Icon = AGENT_ICONS[tool.icon] ?? Package
             return (
-              <div key={tool.name} className="bg-card border border-border rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icon className="w-4 h-4 text-primary" />
-                  <h4 className="font-display font-semibold text-foreground text-xs">{tool.name}</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mb-2">{tool.desc}</p>
+              <DetailCard key={tool.name} icon={<Icon className="w-4 h-4 text-primary" />} title={tool.name} description={tool.desc} className="p-4">
                 <BulletList items={tool.details} variant="in-card" />
-              </div>
+              </DetailCard>
             )
           }}
         />
 
         {/* Memory */}
         <H3 id="memory">{t.sections.architecture.memory.heading}</H3>
-        <Prose>{t.sections.architecture.memory.body}</Prose>
-        <StepList items={t.sections.architecture.memory.steps} />
-        <Callout>{t.sections.architecture.memory.punchline}</Callout>
+        <Prose editorId="memory-body">{t.sections.architecture.memory.body}</Prose>
+        <Photo1 editorId="memory-n8n-workflow" src="/jacobo/n8n-jacobo-memoria.webp" alt={lang === 'es' ? 'Workflow de memoria conversacional de Jacobo en n8n' : 'Jacobo conversational memory workflow in n8n'} />
+        <StepList editorId="memory-steps" items={t.sections.architecture.memory.steps} />
+        <Callout editorId="memory-punchline">{t.sections.architecture.memory.punchline}</Callout>
 
         {/* Memory screenshots */}
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="memory-animals-cities" lang={lang} items={[
           { src: 'memory-animals.webp', altEs: 'Test de memoria: Perro, Gato, Elefante — Jacobo recuerda los tres', altEn: 'Memory test: Dog, Cat, Elephant — Jacobo recalls all three' },
           { src: 'memory-cities.webp', altEs: 'Test de ciudades: Sevilla, Madrid, Barcelona — recuerdo correcto', altEn: 'Cities test: Seville, Madrid, Barcelona — correct recall' },
           { src: 'memory-cities-correction.webp', altEs: 'Autocorrección: "Tienes razón, dije Sevilla, no Valencia" — Jacobo se autocorrige', altEn: `Self-correction: "You're right, I said Seville, not Valencia" — Jacobo self-corrects` },
         ]} />
-        <ScreenshotCaption lang={lang} es="Tests de memoria episódica: animales, ciudades y autocorrección cuando Jacobo olvida Barcelona" en="Episodic memory tests: animals, cities and self-correction when Jacobo forgets Barcelona" />
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotCaption editorId="memory-animals-cities-caption" lang={lang} es="Tests de memoria episódica: animales, ciudades y autocorrección cuando Jacobo olvida Barcelona" en="Episodic memory tests: animals, cities and self-correction when Jacobo forgets Barcelona" />
+        <ScreenshotGrid editorId="memory-brands-preferences" lang={lang} items={[
           { src: 'memory-brands.webp', altEs: 'Test de marcas: Apple, Samsung, Huawei — recuerdo correcto', altEn: 'Brand test: Apple, Samsung, Huawei — correct recall' },
           { src: 'memory-lost-appointment.webp', altEs: 'Cliente perdió la conversación — Jacobo recuerda la cita completa', altEn: 'Customer lost the conversation — Jacobo recalls the full appointment' },
+          { src: 'memory-preference.webp', altEs: 'Re-negociación: Jacobo recuerda preferencia horaria → no hay hueco a las 12 → sugiere alternativas', altEn: 'Re-negotiation: Jacobo recalls time preference → no slot at 12 → suggests alternatives' },
         ]} />
-        <ScreenshotCaption lang={lang} es="Memoria en acción: marcas recordadas en orden y cita completa recuperada desde el estado del sistema" en="Memory in action: brands recalled in order and full appointment recovered from system state" />
-
-        {/* Debug screenshots */}
-        <ScreenshotGrid lang={lang} items={[
-          { src: 'debug-json-dump.webp', altEs: 'Comando HISTORIAL: JSON crudo del buffer de memoria expuesto en el chat', altEn: 'HISTORIAL command: raw JSON from memory buffer exposed in chat' },
-        ]} />
-        <ScreenshotCaption lang={lang} es="HISTORIAL volcaba el JSON crudo del buffer — la filtración que enseñó a blindar respuestas" en="HISTORIAL dumped raw JSON from the buffer — the leak that taught us to sanitize responses" />
+        <ScreenshotCaption editorId="memory-brands-preferences-caption" lang={lang} es="Memoria en acción: marcas recordadas en orden, cita recuperada desde el estado del sistema y re-negociación cuando no hay disponibilidad" en="Memory in action: brands recalled in order, appointment recovered from system state and re-negotiation when no availability" />
 
         {/* Production debug tools */}
         <H4>{t.sections.architecture.debugTools.heading}</H4>
-        <Prose>{t.sections.architecture.debugTools.body}</Prose>
+        <Prose editorId="debug-tools-body">{t.sections.architecture.debugTools.body}</Prose>
+        <ScreenshotGrid editorId="debug-tools-screenshots" lang={lang} items={[
+          { src: 'debug-json-dump.webp', altEs: 'Comando HISTORIAL: JSON crudo del buffer de memoria expuesto en el chat', altEn: 'HISTORIAL command: raw JSON from memory buffer exposed in chat' },
+          { src: 'stress-test-112.webp', altEs: 'Comando BORRAR MEMORIA: reset completo del buffer conversacional', altEn: 'BORRAR MEMORIA command: full conversational buffer reset' },
+        ]} />
+        <ScreenshotCaption editorId="debug-tools-caption" lang={lang} es="Comandos de debug en producción: HISTORIAL volcaba el JSON crudo del buffer y BORRAR MEMORIA reseteaba la conversación" en="Production debug commands: HISTORIAL dumped raw JSON from the buffer and BORRAR MEMORIA reset the conversation" />
 
         {/* Pseudo-streaming */}
         <H4>{t.sections.architecture.pseudoStreaming.heading}</H4>
-        <Prose>{t.sections.architecture.pseudoStreaming.body}</Prose>
+        <Prose editorId="pseudo-streaming-body">{t.sections.architecture.pseudoStreaming.body}</Prose>
+        <Photo1 editorId="pseudo-streaming-workflow" src="/jacobo/n8n-pseudo-splitter.webp" alt={lang === 'es' ? 'Workflow de pseudo-streaming en n8n: splitter de mensajes largos para WhatsApp' : 'Pseudo-streaming workflow in n8n: long message splitter for WhatsApp'} />
 
         {/* Channels (H3 under Architecture) */}
         <H3 id="channels">{t.sections.channels.heading}</H3>
-        <Prose>{t.sections.channels.body}</Prose>
+        <Prose editorId="channels-body">{t.sections.channels.body}</Prose>
 
         {/* Dual orchestrator — callout card */}
-        <InfoCard heading={t.sections.channels.dualOrchestrator.heading}>
+        <InfoCard editorId="dual-orchestrator" heading={t.sections.channels.dualOrchestrator.heading}>
           <p className="text-muted-foreground text-sm leading-relaxed">{t.sections.channels.dualOrchestrator.body}</p>
         </InfoCard>
 
@@ -550,283 +539,330 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
         <H4 icon={<MessageCircle className="w-5 h-5 text-primary" />}>
           {t.sections.channels.whatsapp.name}
         </H4>
-        <Prose>{t.sections.channels.whatsapp.detail}</Prose>
-        <BulletList items={t.sections.channels.whatsapp.highlights} className="mb-8" />
+        <Prose editorId="whatsapp-body">{t.sections.channels.whatsapp.detail}</Prose>
+        <BulletList editorId="whatsapp-highlights" items={t.sections.channels.whatsapp.highlights} className="mb-8" />
 
         {/* Voice channel */}
         <H4 icon={<Mic className="w-5 h-5 text-primary" />}>
           {t.sections.channels.voice.name}
         </H4>
-        <Prose>{t.sections.channels.voice.detail}</Prose>
+        <Prose editorId="voice-body">{t.sections.channels.voice.detail}</Prose>
 
         {/* Aircall routing diagram */}
-        <Photo1 src={`/jacobo/aircall-routing-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Diagrama de routing Aircall' : 'Aircall routing diagram'} />
+        <Photo1 editorId="aircall-routing-diagram" src={`/jacobo/aircall-routing-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Diagrama de routing Aircall' : 'Aircall routing diagram'} />
 
-        <BulletList items={t.sections.channels.voice.highlights} className="mb-8" />
+        <BulletList editorId="voice-highlights" items={t.sections.channels.voice.highlights} className="mb-8" />
 
         {/* Missed call recovery */}
         <H4 id="missed-call-recovery" icon={<PhoneMissed className="w-5 h-5 text-primary" />}>{t.sections.channels.missedCallRecovery.heading}</H4>
-        <Prose>{t.sections.channels.missedCallRecovery.body}</Prose>
+        <Prose editorId="missed-call-body">{t.sections.channels.missedCallRecovery.body}</Prose>
 
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="missed-call-flow" lang={lang} items={[
           { src: 'missed-call-template.webp', altEs: 'Template de WhatsApp tras llamada perdida: botones Pedir presupuesto, Tomar cita', altEn: 'WhatsApp template after missed call: buttons Get a quote, Book appointment' },
           { src: 'missed-call-hitl.webp', altEs: 'Cliente elige "Que me llamen" → Jacobo escala a HITL y confirma notificación', altEn: 'Customer picks "Call me back" → Jacobo escalates to HITL and confirms notification' },
         ]} />
-        <ScreenshotCaption lang={lang} es="Aircall → Make.com → template WhatsApp con botones → Jacobo retoma la conversación con contexto completo" en="Aircall → Make.com → WhatsApp template with buttons → Jacobo picks up the conversation with full context" />
+        <ScreenshotCaption editorId="missed-call-flow-caption" lang={lang} es="Aircall → Make.com → template WhatsApp con botones → Jacobo retoma la conversación con contexto completo" en="Aircall → Make.com → WhatsApp template with buttons → Jacobo picks up the conversation with full context" />
 
         {/* Event routing / Pre-filtering */}
         <H4 id="pre-filtering">{t.sections.channels.eventRouting.heading}</H4>
-        <Prose>{t.sections.channels.eventRouting.body}</Prose>
-        <StepList items={t.sections.channels.eventRouting.steps} />
-        <Callout className="mb-8">{t.sections.channels.eventRouting.punchline}</Callout>
+        <Prose editorId="event-routing-body">{t.sections.channels.eventRouting.body}</Prose>
+        <Photo1 editorId="prefiltrado-n8n" src="/jacobo/n8n-prefiltrado.webp" alt={lang === 'es' ? 'Pre-filtrado de eventos en n8n' : 'Event pre-filtering in n8n'} className="mb-4" />
+        <StepList editorId="event-routing-steps" items={t.sections.channels.eventRouting.steps} />
+        <Callout editorId="event-routing-punchline" className="mb-8">{t.sections.channels.eventRouting.punchline}</Callout>
 
         {/* ================================================================ */}
         {/*  E2E FLOWS                                                       */}
         {/* ================================================================ */}
         <H2 id="e2e-flows">{t.sections.e2eFlows.heading}</H2>
-        <Prose>{t.sections.e2eFlows.body}</Prose>
-        <Accordion
-          variant="rich"
-          items={t.sections.e2eFlows.items.map(flow => ({
-            icon: flow.icon,
-            name: flow.name,
-            trigger: flow.trigger,
-            summary: flow.summary,
-            tags: flow.agentsTouched,
-            details: flow.details,
-          }))}
-        />
+        <Prose editorId="e2e-flows-body">{t.sections.e2eFlows.body}</Prose>
+
+        {/* Repair appointment E2E flow */}
+        <H3 id="repair-appointment">{t.sections.e2eFlows.items[0].name}</H3>
+        <StepList editorId="repair-appointment-steps" items={t.sections.e2eFlows.items[0].details} className="mb-8" />
+
+        {/* Price inquiry E2E flow */}
+        <H3 id="price-inquiry">{t.sections.e2eFlows.items[1].name}</H3>
+        <StepList editorId="price-inquiry-steps" items={t.sections.e2eFlows.items[1].details} className="mb-8" />
+
+        {/* HITL escalation E2E flow */}
+        <H3 id="hitl-escalation">{t.sections.e2eFlows.items[2].name}</H3>
+        <StepList editorId="hitl-escalation-steps" items={t.sections.e2eFlows.items[2].details} className="mb-8" />
 
         {/* ================================================================ */}
         {/*  MAIN ROUTER                                                     */}
         {/* ================================================================ */}
         <H2 id="main-router">{t.sections.mainRouter.heading}</H2>
-        <Prose>{t.sections.mainRouter.body}</Prose>
+        <Prose editorId="main-router-body">{t.sections.mainRouter.body}</Prose>
 
-        {/* n8n workflow screenshot */}
-        <Photo1 src="/jacobo/n8n-router-principal.webp" alt={lang === 'es' ? 'Workflow del Router Principal en n8n: 37 nodos' : 'Main Router workflow in n8n: 37 nodes'} className="mb-4" />
+        {/* WhatsApp Router (n8n) */}
+        <H3 id="whatsapp-router">{t.sections.mainRouter.whatsappRouter.heading}</H3>
+        <Prose editorId="whatsapp-router-body">{t.sections.mainRouter.whatsappRouter.body}</Prose>
+        <Photo1 editorId="main-router-workflow" src="/jacobo/n8n-router-principal.webp" alt={lang === 'es' ? 'Workflow del Router Principal en n8n: 37 nodos' : 'Main Router workflow in n8n: 37 nodes'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['jacobo-chatbot-v2'].href} label={t.downloads.inlineLabel} fileSize={wfById['jacobo-chatbot-v2'].fileSize} />
-        <div className="mb-6" />
+
+        {/* Voice Router (ElevenLabs) */}
+        <H3 id="voice-router">{t.sections.mainRouter.voiceRouter.heading}</H3>
+        <Prose editorId="voice-router-body">{t.sections.mainRouter.voiceRouter.body}</Prose>
+        <Photo1 editorId="voice-router-elevenlabs" src="/jacobo/elevenlabs-agent-config.webp" alt={lang === 'es' ? 'Configuración del agente de voz en ElevenLabs: system prompt, modelo y tools' : 'Voice agent configuration in ElevenLabs: system prompt, model and tools'} className="mb-4" />
 
         {/* Tool Calling */}
         <H3 id="tool-calling">{t.sections.toolCalling.heading}</H3>
-        <Prose>{t.sections.toolCalling.body}</Prose>
-        <ToolList items={t.sections.toolCalling.tools} />
+        <Prose editorId="tool-calling-body">{t.sections.toolCalling.body}</Prose>
+        <Photo1 editorId="tool-calling-n8n" src="/jacobo/n8n-tool-calling.webp" alt={lang === 'es' ? 'Tool calling en n8n: 7 herramientas definidas como HTTP endpoints' : 'Tool calling in n8n: 7 tools defined as HTTP endpoints'} className="mb-4" />
+        <ToolList editorId="tool-calling-tools" items={t.sections.toolCalling.tools} />
 
         {/* Wait message */}
         <H4>{t.sections.toolCalling.waitMessage.heading}</H4>
-        <Prose>{t.sections.toolCalling.waitMessage.body}</Prose>
+        <Prose editorId="wait-message-body">{t.sections.toolCalling.waitMessage.body}</Prose>
+        <ScreenshotGrid editorId="email-formal-flow" lang={lang} items={[
+          { src: 'email-formal-1.webp', altEs: 'Jacobo responde como email formal: asunto, saludo, presupuesto Huawei P20 Pro', altEn: 'Jacobo responds as formal email: subject line, greeting, Huawei P20 Pro quote' },
+          { src: 'email-formal-2.webp', altEs: 'Email: desglose batería + puerto carga = 85,80€ → descuento combo 70,80€', altEn: 'Email: battery + charging port = €85.80 → combo discount €70.80' },
+          { src: 'email-formal-3.webp', altEs: 'Firma: "Un saludo, Jacobo — Santifer iRepair — dirección + teléfono + email"', altEn: 'Signature: "Best regards, Jacobo — Santifer iRepair — address + phone + email"' },
+        ]} />
+        <ScreenshotCaption editorId="email-formal-flow-caption" lang={lang} es="Adaptabilidad: el cliente pide formato email y Jacobo responde con asunto, presupuesto desglosado, descuento combo y firma corporativa" en="Adaptability: customer asks for email format and Jacobo responds with subject line, itemized quote, combo discount and corporate signature" />
 
         {/* Think tool */}
         <H4>{t.sections.toolCalling.thinkTool.heading}</H4>
-        <Prose>{t.sections.toolCalling.thinkTool.body}</Prose>
+        <Prose editorId="think-tool-body">{t.sections.toolCalling.thinkTool.body}</Prose>
 
         {/* Stock-aware routing */}
         <H4>{t.sections.toolCalling.stockAware.heading}</H4>
-        <Prose>{t.sections.toolCalling.stockAware.body}</Prose>
-        <ConditionList items={t.sections.toolCalling.stockAware.flows} />
-
-        {/* Detail photos */}
-        <Photo2 items={[
-          { src: '/jacobo/microscope-pcb-view.webp', alt: lang === 'es' ? 'Vista de PCB bajo microscopio' : 'PCB view under microscope' },
-          { src: '/jacobo/chip-bga-fingertip.webp', alt: lang === 'es' ? 'Chip BGA en la punta del dedo' : 'BGA chip on fingertip' },
-        ]} />
+        <Prose editorId="stock-routing-body">{t.sections.toolCalling.stockAware.body}</Prose>
+        <ConditionList editorId="stock-routing-flows" items={t.sections.toolCalling.stockAware.flows} />
 
         {/* ---- Prompt Engineering ---- */}
         <H3 id="prompt-engineering">{t.sections.promptEngineering.heading}</H3>
-        <Prose>{t.sections.promptEngineering.body}</Prose>
+        <Prose editorId="prompt-engineering-body">{t.sections.promptEngineering.body}</Prose>
+
+        {/* Detail photos */}
+        <Photo2 editorId="prompt-engineering-detail-photos" items={[
+          { src: '/jacobo/microscope-pcb-view.webp', alt: lang === 'es' ? 'Vista de PCB bajo microscopio' : 'PCB view under microscope' },
+          { src: '/jacobo/chip-bga-fingertip.webp', alt: lang === 'es' ? 'Chip BGA en la punta del dedo' : 'BGA chip on fingertip' },
+        ]} caption={lang === 'es' ? 'La misma precisión que exige la microsoldadura se aplica al diseño de tool calls. Y como el dedo sujetando el chip, siempre hay un humano en el loop.' : 'The same precision microsoldering demands applies to tool call design. And like the finger holding the chip, there\'s always a human in the loop.'} />
 
         {/* Why not fine-tuning */}
         <H4>{t.sections.promptEngineering.whyNotFineTuning.heading}</H4>
-        <BulletList items={t.sections.promptEngineering.whyNotFineTuning.reasons} />
+        <BulletList editorId="why-not-fine-tuning-reasons" items={t.sections.promptEngineering.whyNotFineTuning.reasons} />
 
         {/* Business hours */}
         <H4 id="business-hours">{t.sections.promptEngineering.businessHours.heading}</H4>
-        <Prose className="mb-3">{t.sections.promptEngineering.businessHours.body}</Prose>
-        <CodeBlock>{t.sections.promptEngineering.businessHours.code}</CodeBlock>
+        <Prose editorId="business-hours-body" className="mb-3">{t.sections.promptEngineering.businessHours.body}</Prose>
+        <Photo1 editorId="business-hours-n8n" src="/jacobo/n8n-business-hours-check.webp" alt={lang === 'es' ? 'Nodo isBusinessHours en n8n: lógica de horario comercial' : 'isBusinessHours node in n8n: business hours logic'} className="mb-4" />
+        <CodeBlock editorId="business-hours-code">{t.sections.promptEngineering.businessHours.code}</CodeBlock>
 
         {/* Business hours screenshots */}
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="business-hours-screenshots" lang={lang} items={[
           { src: 'hours-closed.webp', altEs: '"¿Estáis abiertos?" a las 11:56 → "La tienda está cerrada" con horario completo', altEn: '"Are you open?" at 11:56 → "The shop is closed" with full schedule' },
           { src: 'hours-open.webp', altEs: '"¿Estáis abiertos?" a las 13:12 → "¡Sí! Estamos abiertos ahora mismo"', altEn: `"Are you open?" at 13:12 → "Yes! We're open right now"` },
         ]} />
-        <ScreenshotCaption lang={lang} es="La misma pregunta, respuestas opuestas: a las 11:56 cerrado (pausa mediodía), a las 13:12 abierto. Consciencia de horario en tiempo real." en="Same question, opposite answers: at 11:56 closed (midday break), at 13:12 open. Real-time schedule awareness." />
+        <ScreenshotCaption editorId="business-hours-screenshots-caption" lang={lang} es="La misma pregunta, respuestas opuestas: a las 11:56 cerrado (pausa mediodía), a las 13:12 abierto. Consciencia de horario en tiempo real." en="Same question, opposite answers: at 11:56 closed (midday break), at 13:12 open. Real-time schedule awareness." />
 
         {/* Main prompt */}
         <H4 id="main-prompt">{t.sections.promptEngineering.mainPrompt.heading}</H4>
-        <Prose>{t.sections.promptEngineering.mainPrompt.body}</Prose>
+        <Prose editorId="main-prompt-body">{t.sections.promptEngineering.mainPrompt.body}</Prose>
 
-        <Photo1 src="/jacobo/n8n-prompt-principal.webp" alt={lang === 'es' ? 'System prompt del router principal en n8n' : 'Main router system prompt in n8n'} className="mb-4" />
+        <Photo1 editorId="main-prompt-n8n" src="/jacobo/n8n-prompt-principal.webp" alt={lang === 'es' ? 'System prompt del router principal en n8n' : 'Main router system prompt in n8n'} className="mb-4" />
 
-        <CodeBlock segments={t.sections.promptEngineering.mainPrompt.segments} />
+        <CodeBlock editorId="main-prompt-code" segments={t.sections.promptEngineering.mainPrompt.segments} />
 
         {/* Voice prompt */}
         <H4 id="voice-prompt">{t.sections.promptEngineering.voicePrompt.heading}</H4>
-        <Prose>{t.sections.promptEngineering.voicePrompt.body}</Prose>
-        <CodeBlock segments={t.sections.promptEngineering.voicePrompt.segments} />
+        <Prose editorId="voice-prompt-body">{t.sections.promptEngineering.voicePrompt.body}</Prose>
+        <CodeBlock editorId="voice-prompt-code" segments={t.sections.promptEngineering.voicePrompt.segments} />
 
         {/* Iteration examples */}
         <H4 id="iteration-examples">{t.sections.promptEngineering.iterationExamples.heading}</H4>
-        <CardStack items={t.sections.promptEngineering.iterationExamples.items.map(item => ({ title: item.rule, detail: item.origin }))} className="mb-6" />
+        <CardStack editorId="iteration-examples" items={t.sections.promptEngineering.iterationExamples.items.map(item => ({ title: item.rule, detail: item.origin }))} className="mb-6" />
 
         {/* Diagnostic screenshots */}
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="diagnostic-iteration" lang={lang} items={[
           { src: 'diagnostic-free-1.webp', altEs: 'Jacobo dice "diagnóstico totalmente gratuito" — simplificación incorrecta', altEn: 'Jacobo says "completely free diagnosis" — incorrect simplification' },
           { src: 'diagnostic-correction.webp', altEs: 'Autocorrección: "19€ solo si no reparas con nosotros" — la política real', altEn: `Self-correction: "€19 only if you don't repair with us" — the real policy` },
         ]} />
-        <ScreenshotCaption lang={lang} es="Iteración real: Jacobo simplificó la política de diagnóstico → el prompt se refinó para incluir la condición exacta" en="Real iteration: Jacobo oversimplified the diagnostic policy → prompt refined to include the exact condition" />
+        <ScreenshotCaption editorId="diagnostic-iteration-caption" lang={lang} es="Iteración real: Jacobo simplificó la política de diagnóstico → el prompt se refinó para incluir la condición exacta" en="Real iteration: Jacobo oversimplified the diagnostic policy → prompt refined to include the exact condition" />
 
         {/* ================================================================ */}
         {/*  DEEP DIVE: BOOKING                                              */}
         {/* ================================================================ */}
         <H2 id="natural-language-booking">{t.sections.deepDiveBooking.heading}</H2>
-        <Prose>{t.sections.deepDiveBooking.body}</Prose>
+        <Prose editorId="booking-body">{t.sections.deepDiveBooking.body}</Prose>
+        <Photo1 editorId="booking-nl-to-calendar" src={`/jacobo/nl-to-calendar-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'De lenguaje natural a slots de calendario' : 'From natural language to calendar slots'} />
 
         {/* Challenge */}
         <H4>{t.sections.deepDiveBooking.challenge.heading}</H4>
-        <Prose className="mb-6">{t.sections.deepDiveBooking.challenge.body}</Prose>
+        <Prose editorId="booking-challenge-body" className="mb-6">{t.sections.deepDiveBooking.challenge.body}</Prose>
 
         {/* Workflow screenshot */}
-        <Photo1 src="/jacobo/n8n-subagente-citas.webp" alt={lang === 'es' ? 'Workflow del sub-agente de citas en n8n: 18 nodos' : 'Appointments sub-agent workflow in n8n: 18 nodes'} className="mb-4" />
+        <Photo1 editorId="booking-n8n-workflow" src="/jacobo/n8n-subagente-citas.webp" alt={lang === 'es' ? 'Workflow del sub-agente de citas en n8n: 18 nodos' : 'Appointments sub-agent workflow in n8n: 18 nodes'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['subagente-citas'].href} label={t.downloads.inlineLabel} fileSize={wfById['subagente-citas'].fileSize} />
-        <div className="mb-6" />
 
-        {/* NL to calendar diagram */}
-        <Photo1 src={`/jacobo/nl-to-calendar-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'De lenguaje natural a slots de calendario' : 'From natural language to calendar slots'} />
 
-        {/* Steps */}
-        <StepList items={t.sections.deepDiveBooking.steps} />
-        <Callout>{t.sections.deepDiveBooking.punchline}</Callout>
+        {/* Step 1: ParseURL */}
+        <H3 id="parseurl">{t.sections.deepDiveBooking.parseUrl.heading}</H3>
+        <Photo1 editorId="booking-parseurl-n8n" src="/jacobo/n8n-parseurl.webp" alt={lang === 'es' ? 'Nodo ParseURL en n8n: extrae subdomain y query params' : 'ParseURL node in n8n: extracts subdomain and query params'} className="mb-4" />
+        <Prose editorId="booking-parseurl-body">{t.sections.deepDiveBooking.parseUrl.body}</Prose>
+
+        {/* Step 2: AnalizarDisponibilidad */}
+        <H3 id="analizar-disponibilidad">{t.sections.deepDiveBooking.analizarDisponibilidad.heading}</H3>
+        <Photo1 editorId="booking-analizar-n8n" src="/jacobo/n8n-analizar-disponibilidad.webp" alt={lang === 'es' ? 'Nodo AnalizarDisponibilidad en n8n: agente LLM con reglas temporales' : 'AnalizarDisponibilidad node in n8n: LLM agent with temporal rules'} className="mb-4" />
+        <Prose editorId="booking-analizar-body">{t.sections.deepDiveBooking.analizarDisponibilidad.body}</Prose>
+        <BulletList editorId="booking-analizar-rules" items={t.sections.deepDiveBooking.analizarDisponibilidad.rules} />
+
+        {/* Step 3: YCBM API */}
+        <H3 id="ycbm-api">{t.sections.deepDiveBooking.ycbmApi.heading}</H3>
+        <Photo1 editorId="booking-ycbm-n8n" src="/jacobo/n8n-ycbm-api.webp" alt={lang === 'es' ? 'Pipeline YCBM API en n8n: 3 llamadas HTTP secuenciales' : 'YCBM API pipeline in n8n: 3 sequential HTTP requests'} className="mb-4" />
+        <Prose editorId="booking-ycbm-body">{t.sections.deepDiveBooking.ycbmApi.body}</Prose>
+        <StepList editorId="booking-ycbm-steps" items={t.sections.deepDiveBooking.ycbmApi.steps} />
+
+        {/* Step 4: FilterSlots */}
+        <H3 id="filter-slots">{t.sections.deepDiveBooking.filterSlots.heading}</H3>
+        <Photo1 editorId="booking-filter-n8n" src="/jacobo/n8n-filter-slots.webp" alt={lang === 'es' ? 'Nodo FilterSlots en n8n: intersección de rangos LLM y slots YCBM' : 'FilterSlots node in n8n: intersection of LLM ranges and YCBM slots'} className="mb-4" />
+        <Prose editorId="booking-filter-body">{t.sections.deepDiveBooking.filterSlots.body}</Prose>
+
+        {/* Step 5: Auto-booking */}
+        <H3 id="auto-booking">{t.sections.deepDiveBooking.autoBooking.heading}</H3>
+        <Photo1 editorId="booking-auto-n8n" src="/jacobo/n8n-auto-booking.webp" alt={lang === 'es' ? 'Auto-booking condicional en n8n: 3 caminos según número de slots' : 'Conditional auto-booking in n8n: 3 paths based on slot count'} className="mb-4" />
+        <Prose editorId="booking-auto-body">{t.sections.deepDiveBooking.autoBooking.body}</Prose>
+        <ConditionList editorId="booking-auto-paths" items={t.sections.deepDiveBooking.autoBooking.paths} />
+
+        <Callout editorId="booking-punchline">{t.sections.deepDiveBooking.punchline}</Callout>
 
         {/* Booking screenshots */}
-        <ScreenshotGrid lang={lang} items={[
-          { src: 'booking-confirmation.webp', altEs: 'Booking: "Tómame cita" → disponibilidad mañana → "A las 17"', altEn: 'Booking: "Book me an appointment" → tomorrow availability → "At 17"' },
+        <ScreenshotGrid editorId="booking-flow" lang={lang} items={[
           { src: 'booking-nl-1.webp', altEs: 'Booking: email → cita confirmada + template WhatsApp de confirmación', altEn: 'Booking: email → confirmed appointment + WhatsApp confirmation template' },
           { src: 'booking-nl-2.webp', altEs: 'Reserva con refinamiento: "no, mejor el jueves" → nueva búsqueda', altEn: 'Booking with refinement: "no, Thursday instead" → new search' },
+          { src: 'booking-confirmation.webp', altEs: 'Booking: "Tómame cita" → disponibilidad mañana → "A las 17"', altEn: 'Booking: "Book me an appointment" → tomorrow availability → "At 17"' },
         ]} />
-        <ScreenshotGrid lang={lang} items={[
-          { src: 'memory-preference.webp', altEs: 'Re-negociación: Jacobo recuerda preferencia horaria → no hay hueco a las 12 → sugiere alternativas', altEn: 'Re-negotiation: Jacobo recalls time preference → no slot at 12 → suggests alternatives' },
-        ]} />
-        <ScreenshotCaption lang={lang} es="Memoria + booking: Jacobo recuerda la preferencia horaria del cliente y re-negocia cuando no hay disponibilidad" en="Memory + booking: Jacobo recalls the customer's time preference and re-negotiates when no availability" />
-
+        <ScreenshotCaption editorId="booking-flow-caption" lang={lang}
+          es="Flujo completo de reserva: el cliente pide cita en lenguaje natural, Jacobo negocia horario, confirma en calendario y envía mensaje de confirmación — todo transparente para el usuario."
+          en="Full booking flow: the customer requests an appointment in natural language, Jacobo negotiates the time slot, confirms in the calendar and sends a confirmation message — all transparent to the user."
+        />
         {/* Appointments prompt */}
         <H3 id="appointments-prompt">{t.sections.promptEngineering.citasPrompt.heading}</H3>
-        <Prose>{t.sections.promptEngineering.citasPrompt.body}</Prose>
+        <Prose editorId="appointments-prompt-body">{t.sections.promptEngineering.citasPrompt.body}</Prose>
 
-        <Photo1 src="/jacobo/n8n-prompt-citas.webp" alt={lang === 'es' ? 'System prompt del sub-agente de citas' : 'Appointments sub-agent system prompt'} className="mb-4" />
+        <Photo1 editorId="appointments-prompt-n8n" src="/jacobo/n8n-prompt-citas.webp" alt={lang === 'es' ? 'System prompt del sub-agente de citas' : 'Appointments sub-agent system prompt'} className="mb-4" />
 
-        <CodeBlock segments={t.sections.promptEngineering.citasPrompt.segments} />
-
-        {/* Repair appointment E2E flow */}
-        <H3 id="repair-appointment">{t.sections.e2eFlows.items[0].name}</H3>
-        <StepList items={t.sections.e2eFlows.items[0].details} className="mb-8" />
+        <CodeBlock editorId="appointments-prompt-code" segments={t.sections.promptEngineering.citasPrompt.segments} />
 
         {/* ================================================================ */}
         {/*  DEEP DIVE: QUOTES                                               */}
         {/* ================================================================ */}
         <H2 id="deep-dive-quotes">{t.sections.deepDiveQuotes.heading}</H2>
-        <Prose>{t.sections.deepDiveQuotes.body}</Prose>
+        <Prose editorId="quotes-body">{t.sections.deepDiveQuotes.body}</Prose>
 
         {/* Challenge */}
         <H4>{t.sections.deepDiveQuotes.challenge.heading}</H4>
-        <Prose className="mb-6">{t.sections.deepDiveQuotes.challenge.body}</Prose>
+        <Prose editorId="quotes-challenge-body" className="mb-6">{t.sections.deepDiveQuotes.challenge.body}</Prose>
 
         {/* Workflow screenshot */}
-        <Photo1 src="/jacobo/n8n-subagente-presupuestos.webp" alt={lang === 'es' ? 'Workflow del sub-agente de presupuestos en n8n: 11 nodos' : 'Quotes sub-agent workflow in n8n: 11 nodes'} className="mb-4" />
+        <Photo1 editorId="quotes-n8n-workflow" src="/jacobo/n8n-subagente-presupuestos.webp" alt={lang === 'es' ? 'Workflow del sub-agente de presupuestos en n8n: 11 nodos' : 'Quotes sub-agent workflow in n8n: 11 nodes'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['presupuesto-modelo'].href} label={t.downloads.inlineLabel} fileSize={wfById['presupuesto-modelo'].fileSize} />
-        <div className="mb-6" />
 
-        {/* Steps */}
-        <StepList items={t.sections.deepDiveQuotes.steps} />
-        <Callout>{t.sections.deepDiveQuotes.punchline}</Callout>
+
+        {/* CleanModel */}
+        <H3 id="clean-model">{t.sections.deepDiveQuotes.cleanModel.heading}</H3>
+        <Photo1 editorId="clean-model-n8n" src="/jacobo/n8n-presupuesto-clean-model.webp" alt={lang === 'es' ? 'Nodo CleanModel en n8n: normalización de input' : 'CleanModel node in n8n: input normalization'} className="mb-4" />
+        <Prose editorId="clean-model-body">{t.sections.deepDiveQuotes.cleanModel.body}</Prose>
+        <Prose editorId="clean-model-detail">{t.sections.deepDiveQuotes.cleanModel.detail}</Prose>
+        <Callout editorId="clean-model-insight">{t.sections.deepDiveQuotes.cleanModel.insight}</Callout>
+
+        {/* AI Agent */}
+        <H3 id="ai-agent-quotes">{t.sections.deepDiveQuotes.aiAgent.heading}</H3>
+        <Photo1 editorId="ai-agent-quotes-n8n" src="/jacobo/n8n-presupuesto-ai-agent.webp" alt={lang === 'es' ? 'Nodo AI Agent del sub-agente de presupuestos en n8n' : 'AI Agent node in quotes sub-agent in n8n'} className="mb-4" />
+        <Prose editorId="ai-agent-quotes-body">{t.sections.deepDiveQuotes.aiAgent.body}</Prose>
+        <StepList editorId="ai-agent-quotes-tools" items={t.sections.deepDiveQuotes.aiAgent.tools} />
+        <Prose editorId="ai-agent-quotes-fallback">{t.sections.deepDiveQuotes.aiAgent.fallback}</Prose>
+
+        {/* FiltrarRespuesta */}
+        <H3 id="filtrar-respuesta">{t.sections.deepDiveQuotes.filtrarRespuesta.heading}</H3>
+        <Photo1 editorId="filtrar-respuesta-n8n" src="/jacobo/n8n-presupuesto-filtrar-respuesta.webp" alt={lang === 'es' ? 'Nodo FiltrarRespuesta en n8n: post-procesado determinista' : 'FiltrarRespuesta node in n8n: deterministic post-processing'} className="mb-4" />
+        <Prose editorId="filtrar-respuesta-body">{t.sections.deepDiveQuotes.filtrarRespuesta.body}</Prose>
+        <ConditionList editorId="filtrar-respuesta-rules" items={t.sections.deepDiveQuotes.filtrarRespuesta.rules} />
+
+        <Callout editorId="quotes-punchline">{t.sections.deepDiveQuotes.punchline}</Callout>
 
         {/* Quotes prompt */}
         <H3 id="quotes-prompt">{t.sections.deepDiveQuotes.presupuestoPrompt.heading}</H3>
-        <Prose>{t.sections.deepDiveQuotes.presupuestoPrompt.body}</Prose>
+        <Prose editorId="quotes-prompt-body">{t.sections.deepDiveQuotes.presupuestoPrompt.body}</Prose>
 
-        <Photo1 src="/jacobo/n8n-prompt-presupuestos.webp" alt={lang === 'es' ? 'System prompt del sub-agente de presupuestos' : 'Quotes sub-agent system prompt'} className="mb-4" />
+        <Photo1 editorId="quotes-prompt-n8n" src="/jacobo/n8n-prompt-presupuestos.webp" alt={lang === 'es' ? 'System prompt del sub-agente de presupuestos' : 'Quotes sub-agent system prompt'} className="mb-4" />
 
-        <CodeBlock segments={t.sections.deepDiveQuotes.presupuestoPrompt.segments} />
+        <CodeBlock editorId="quotes-prompt-code" segments={t.sections.deepDiveQuotes.presupuestoPrompt.segments} />
 
         {/* Quote screenshots */}
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="quotes-real-examples" lang={lang} items={[
           { src: 'resolution-camera-lens.webp', altEs: 'iPhone 13 Mini lente rota → diagnóstico + precio 55,90€ + enlace', altEn: 'iPhone 13 Mini broken lens → diagnosis + price €55.90 + link' },
           { src: 'quote-triple-1.webp', altEs: 'Presupuesto triple: batería + puerto carga + cristal trasero iPhone 13', altEn: 'Triple quote: battery + charging port + back glass iPhone 13' },
           { src: 'quote-triple-2.webp', altEs: 'Presupuesto desglosado: 3 reparaciones con total 255,70€ con estado de stock', altEn: 'Itemized quote: 3 repairs totaling €255.70 with stock status' },
         ]} />
-        <ScreenshotCaption lang={lang} es="Presupuestos reales: diagnóstico con precio y enlace, presupuesto triple con desglose y total con estado de stock" en="Real quotes: diagnosis with price and link, triple quote with breakdown and total with stock status" />
-
-        {/* Price inquiry E2E flow */}
-        <H3 id="price-inquiry">{t.sections.e2eFlows.items[1].name}</H3>
-        <StepList items={t.sections.e2eFlows.items[1].details} className="mb-8" />
+        <ScreenshotCaption editorId="quotes-real-examples-caption" lang={lang} es="Presupuestos reales: diagnóstico con precio y enlace, presupuesto triple con desglose y total con estado de stock" en="Real quotes: diagnosis with price and link, triple quote with breakdown and total with stock status" />
 
         {/* ================================================================ */}
         {/*  DEEP DIVE: OTHER TOOLS                                          */}
         {/* ================================================================ */}
         <H2 id="deep-dive-others">{t.sections.deepDiveOthers.heading}</H2>
-        <Prose>{t.sections.deepDiveOthers.body}</Prose>
+        <Prose editorId="deep-dive-others-body">{t.sections.deepDiveOthers.body}</Prose>
 
         {/* Orders */}
         <H3 id="orders-agent">{t.sections.deepDiveOthers.orders.heading}</H3>
-        <Prose className="mb-2">{t.sections.deepDiveOthers.orders.body}</Prose>
-        <NodeLabel>{t.sections.deepDiveOthers.orders.nodes}</NodeLabel>
-        <Photo1 src="/jacobo/n8n-hacer-pedido.webp" alt={lang === 'es' ? 'Workflow de Pedidos en n8n' : 'Orders workflow in n8n'} className="mb-4" />
+        <Prose editorId="orders-body" className="mb-2">{t.sections.deepDiveOthers.orders.body}</Prose>
+        <NodeLabel editorId="orders-nodes">{t.sections.deepDiveOthers.orders.nodes}</NodeLabel>
+        <Photo1 editorId="orders-n8n-workflow" src="/jacobo/n8n-hacer-pedido.webp" alt={lang === 'es' ? 'Workflow de Pedidos en n8n' : 'Orders workflow in n8n'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['hacer-pedido'].href} label={t.downloads.inlineLabel} fileSize={wfById['hacer-pedido'].fileSize} />
-        <div className="mb-6" />
-        <BulletList items={t.sections.deepDiveOthers.orders.details} className="mb-8" />
+
+        <BulletList editorId="orders-details" items={t.sections.deepDiveOthers.orders.details} className="mb-8" />
 
         {/* Calculator */}
         <H3 id="calculator-agent">{t.sections.deepDiveOthers.calculator.heading}</H3>
-        <Prose className="mb-2">{t.sections.deepDiveOthers.calculator.body}</Prose>
-        <NodeLabel>{t.sections.deepDiveOthers.calculator.nodes}</NodeLabel>
-        <Photo1 src="/jacobo/n8n-calculadora.webp" alt={lang === 'es' ? 'Workflow de la Calculadora de Descuentos en n8n: Webhook → Code (lógica de descuentos) → Response' : 'Discount Calculator workflow in n8n: Webhook → Code (discount logic) → Response'} className="mb-4" />
+        <Prose editorId="calculator-body" className="mb-2">{t.sections.deepDiveOthers.calculator.body}</Prose>
+        <NodeLabel editorId="calculator-nodes">{t.sections.deepDiveOthers.calculator.nodes}</NodeLabel>
+        <Photo1 editorId="calculator-n8n-workflow" src="/jacobo/n8n-calculadora.webp" alt={lang === 'es' ? 'Workflow de la Calculadora de Descuentos en n8n: Webhook → Code (lógica de descuentos) → Response' : 'Discount Calculator workflow in n8n: Webhook → Code (discount logic) → Response'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['calculadora-santifer'].href} label={t.downloads.inlineLabel} fileSize={wfById['calculadora-santifer'].fileSize} />
-        <div className="mb-6" />
-        <BulletList items={t.sections.deepDiveOthers.calculator.details} className="mb-4" />
-        <CodeBlock segments={t.sections.deepDiveOthers.calculator.segments} />
+
+        <BulletList editorId="calculator-details" items={t.sections.deepDiveOthers.calculator.details} className="mb-4" />
+        <CodeBlock editorId="calculator-code" segments={t.sections.deepDiveOthers.calculator.segments} />
 
         {/* HITL */}
         <H3 id="hitl-agent">{t.sections.deepDiveOthers.hitl.heading}</H3>
-        <Prose className="mb-2">{t.sections.deepDiveOthers.hitl.body}</Prose>
-        <NodeLabel>{t.sections.deepDiveOthers.hitl.nodes}</NodeLabel>
-        <Photo1 src="/jacobo/n8n-hitl-slack.webp" alt={lang === 'es' ? 'Workflow de HITL Handoff en n8n' : 'HITL Handoff workflow in n8n'} className="mb-4" />
+        <Prose editorId="hitl-body" className="mb-2">{t.sections.deepDiveOthers.hitl.body}</Prose>
+        <NodeLabel editorId="hitl-nodes">{t.sections.deepDiveOthers.hitl.nodes}</NodeLabel>
+        <Photo1 editorId="hitl-n8n-workflow" src="/jacobo/n8n-hitl-slack.webp" alt={lang === 'es' ? 'Workflow de HITL Handoff en n8n' : 'HITL Handoff workflow in n8n'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['contactar-agente-humano'].href} label={t.downloads.inlineLabel} fileSize={wfById['contactar-agente-humano'].fileSize} />
-        <div className="mb-6" />
-        <BulletList items={t.sections.deepDiveOthers.hitl.details} />
+
+        <BulletList editorId="hitl-details" items={t.sections.deepDiveOthers.hitl.details} />
 
         {/* HITL screenshots */}
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="hitl-escalation" lang={lang} items={[
           { src: 'hitl-warranty.webp', altEs: 'HITL: reclamación de garantía → escalada inmediata al equipo humano', altEn: 'HITL: warranty claim → immediate escalation to human team' },
-          { src: 'hitl-insistent.webp', altEs: 'HITL insistente: 4 peticiones de humano → compostura + teléfono de respaldo', altEn: 'Persistent HITL: 4 human requests → composure + fallback phone number' },
+          { src: 'hitl-slack-chat.webp', altEs: 'Canal #chat en Slack: notificación de escalada HITL con contexto del cliente', altEn: '#chat Slack channel: HITL escalation notification with customer context' },
         ]} />
+        <ScreenshotCaption editorId="hitl-escalation-caption" lang={lang} es="Cuando Jacobo escala a humano, llega un mensaje al canal #chat de Slack con el contexto completo de la conversación" en="When Jacobo escalates to a human, a message arrives in the #chat Slack channel with the full conversation context" />
 
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="hitl-edge-cases" lang={lang} items={[
           { src: 'hitl-moha.webp', altEs: 'Edge case: "Dile a un agente que salude a Moha" → Jacobo escala con emojis de mano → agente real confirma "Hecho"', altEn: 'Edge case: "Tell an agent to greet Moha" → Jacobo escalates with wave emojis → real agent confirms "Done"' },
           { src: 'stress-test-1.webp', altEs: 'Guardrail: "Pídeme 100 baterías" → rechazo + "Ayúdame coño!" → escalada automática a humano', altEn: 'Guardrail: "Order 100 batteries" → rejection + profanity → automatic escalation to human' },
           { src: 'stress-test-112.webp', altEs: '"Borrar memoria" → reset + "3,2,1..." + emergencia falsa → Jacobo redirige a 112 y mantiene compostura', altEn: '"Borrar memoria" → reset + "3,2,1..." + fake emergency → Jacobo redirects to 112 and keeps composure' },
         ]} />
-        <ScreenshotCaption lang={lang} es="Edge cases reales: petición absurda, pedido masivo rechazado, escalada por frustración y respuesta ante emergencia falsa con redirección al 112" en="Real edge cases: absurd request, bulk order rejected, frustration escalation and fake emergency response with 112 redirect" />
+        <ScreenshotCaption editorId="hitl-edge-cases-caption" lang={lang} es="Edge cases reales: petición absurda, pedido masivo rechazado, escalada por frustración y respuesta ante emergencia falsa con redirección al 112" en="Real edge cases: absurd request, bulk order rejected, frustration escalation and fake emergency response with 112 redirect" />
 
         {/* WhatsApp cross-channel */}
         <H3 id="whatsapp-agent">{t.sections.deepDiveOthers.whatsapp.heading}</H3>
-        <Prose className="mb-2">{t.sections.deepDiveOthers.whatsapp.body}</Prose>
-        <NodeLabel>{t.sections.deepDiveOthers.whatsapp.nodes}</NodeLabel>
-        <Photo1 src="/jacobo/n8n-enviar-whatsapp.webp" alt={lang === 'es' ? 'Workflow de EnviarMensajeWati en n8n' : 'EnviarMensajeWati workflow in n8n'} className="mb-4" />
+        <Prose editorId="whatsapp-cross-channel-body" className="mb-2">{t.sections.deepDiveOthers.whatsapp.body}</Prose>
+        <NodeLabel editorId="whatsapp-nodes">{t.sections.deepDiveOthers.whatsapp.nodes}</NodeLabel>
+        <Photo1 editorId="whatsapp-n8n-workflow" src="/jacobo/n8n-enviar-whatsapp.webp" alt={lang === 'es' ? 'Workflow de EnviarMensajeWati en n8n' : 'EnviarMensajeWati workflow in n8n'} className="mb-4" />
         <InlineWorkflowDownload href={wfById['enviar-mensaje-wati'].href} label={t.downloads.inlineLabel} fileSize={wfById['enviar-mensaje-wati'].fileSize} />
-        <div className="mb-6" />
-        <BulletList items={t.sections.deepDiveOthers.whatsapp.details} className="mb-8" />
+
+        <BulletList editorId="whatsapp-cross-channel-details" items={t.sections.deepDiveOthers.whatsapp.details} className="mb-8" />
 
         {/* ================================================================ */}
         {/*  RESULTS                                                         */}
         {/* ================================================================ */}
         <H2 id="results">{t.sections.results.heading}</H2>
-        <Prose>{t.sections.results.body}</Prose>
-
-        {/* Before-after automation diagram */}
-        <Photo1 src={`/jacobo/before-after-automation-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Antes y después de la automatización' : 'Before and after automation'} />
+        <Prose editorId="results-body">{t.sections.results.body}</Prose>
 
         {/* Before-after photos */}
-        <Photo2 items={[
+        <Photo2 editorId="results-before-after-photos" items={[
           { src: '/jacobo/before-chaos-desktop.webp', alt: lang === 'es' ? 'Antes: escritorio caótico' : 'Before: chaotic desktop' },
           { src: '/jacobo/after-digital-counter.webp', alt: lang === 'es' ? 'Después: mostrador digital organizado' : 'After: organized digital counter' },
         ]} />
@@ -836,81 +872,74 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
         {/* Before vs After table */}
         <H3 id="before-after">{t.sections.results.beforeAfter.heading}</H3>
         <DataTable
+          editorId="results-before-after-table"
           headers={[lang === 'es' ? 'Área' : 'Area', lang === 'es' ? 'Antes' : 'Before', lang === 'es' ? 'Después' : 'After']}
           rows={t.sections.results.beforeAfter.items.map(item => [item.area, item.before, item.after])}
           highlightColumn={2}
         />
 
         {/* ROI punchline */}
-        <Callout className="mb-8">{t.sections.results.roi}</Callout>
+        <Callout editorId="results-roi-punchline" className="mb-8">{t.sections.results.roi}</Callout>
 
         {/* ================================================================ */}
         {/*  DECISIONS (ADRs)                                                */}
         {/* ================================================================ */}
         <H2 id="decisions">{t.sections.decisions.heading}</H2>
-        <Prose>{t.sections.decisions.body}</Prose>
-        <Accordion items={t.sections.decisions.items} />
+        <Prose editorId="decisions-body">{t.sections.decisions.body}</Prose>
+        <Accordion editorId="decisions-accordion" items={t.sections.decisions.items} />
 
         {/* ================================================================ */}
         {/*  PLATFORM EVOLUTION                                              */}
         {/* ================================================================ */}
         <H2 id="platform-evolution">{t.sections.platformEvolution.heading}</H2>
-        <Prose className="italic mb-6">{t.sections.platformEvolution.tagline}</Prose>
-
-        {/* Santiago photo */}
-        <Photo1 src="/jacobo/santiago-headphones-thinking.webp" alt="Santiago Fernández de Valderrama" />
-
-        {/* Timeline */}
-        <Timeline items={t.sections.platformEvolution.steps} />
-
-        <Prose>{t.sections.platformEvolution.coda}</Prose>
-
-        {/* Cross-link to Business OS */}
-        <InfoCard>
-          <a href={t.sections.platformEvolution.crossLink.href} className="text-primary text-sm font-medium hover:underline">
-            {t.sections.platformEvolution.crossLink.text}
-          </a>
-        </InfoCard>
+        <Prose editorId="evolution-tagline" className="italic mb-6">{t.sections.platformEvolution.tagline}</Prose>
 
         {/* Timeline evolution image */}
-        <Photo1 src={`/jacobo/timeline-evolution-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Línea de tiempo de la evolución de Jacobo' : 'Jacobo evolution timeline'} />
+        <Photo1 editorId="evolution-timeline-diagram" src={`/jacobo/timeline-evolution-${lang === 'es' ? 'es' : 'en'}.webp`} alt={lang === 'es' ? 'Línea de tiempo de la evolución de Jacobo' : 'Jacobo evolution timeline'} />
+
+        {/* Timeline */}
+        <Timeline editorId="evolution-timeline" items={t.sections.platformEvolution.steps} />
+
+        <Prose editorId="evolution-coda">{t.sections.platformEvolution.coda}</Prose>
+
+        {/* Cross-link to Business OS */}
+        <CaseStudyCta
+          editorId="evolution-business-os-cta"
+          heading={lang === 'es' ? 'Business OS — El sistema detrás de Jacobo' : 'Business OS — The System Behind Jacobo'}
+          body={t.sections.platformEvolution.crossLink.text}
+          ctaLabel={lang === 'es' ? 'Leer case study →' : 'Read case study →'}
+          ctaHref={t.sections.platformEvolution.crossLink.href}
+        />
 
         {/* Early Jacobo screenshots */}
-        <ScreenshotGrid lang={lang} items={[
+        <ScreenshotGrid editorId="evolution-birth-screenshots" lang={lang} items={[
           { src: 'birth-first-test.webp', altEs: 'Primer test de Jacobo: mensaje de prueba básico', altEn: 'First Jacobo test: basic test message' },
           { src: 'birth-loyalty-iteration.webp', altEs: 'Iteración de lealtad: mejora en respuestas del agente', altEn: 'Loyalty iteration: improved agent responses' },
           { src: 'loyalty-diamond-template.webp', altEs: 'Template de diamante: programa de fidelidad automatizado', altEn: 'Diamond template: automated loyalty program' },
         ]} />
-        <ScreenshotCaption lang={lang} es="Los primeros momentos de vida de Jacobo: pruebas de endpoints, iteración del copy de fidelización y el template CRM final" en="Jacobo's first moments of life: endpoint testing, loyalty copy iteration and the final CRM template" />
-
-        {/* Email screenshots */}
-        <ScreenshotGrid lang={lang} items={[
-          { src: 'email-formal-1.webp', altEs: 'Jacobo responde como email formal: asunto, saludo, presupuesto Huawei P20 Pro', altEn: 'Jacobo responds as formal email: subject line, greeting, Huawei P20 Pro quote' },
-          { src: 'email-formal-2.webp', altEs: 'Email: desglose batería + puerto carga = 85,80€ → descuento combo 70,80€', altEn: 'Email: battery + charging port = €85.80 → combo discount €70.80' },
-          { src: 'email-formal-3.webp', altEs: 'Firma: "Un saludo, Jacobo — Santifer iRepair — dirección + teléfono + email"', altEn: 'Signature: "Best regards, Jacobo — Santifer iRepair — address + phone + email"' },
-        ]} />
-        <ScreenshotCaption lang={lang} es="Adaptabilidad: el cliente pide formato email y Jacobo responde con asunto, presupuesto desglosado, descuento combo y firma corporativa" en="Adaptability: customer asks for email format and Jacobo responds with subject line, itemized quote, combo discount and corporate signature" />
+        <ScreenshotCaption editorId="evolution-birth-screenshots-caption" lang={lang} es="Los primeros momentos de vida de Jacobo: pruebas de endpoints, iteración del copy de fidelización y el template CRM final" en="Jacobo's first moments of life: endpoint testing, loyalty copy iteration and the final CRM template" />
 
         {/* ================================================================ */}
         {/*  LESSONS LEARNED                                                 */}
         {/* ================================================================ */}
-        <LessonsSection heading={t.sections.lessons.heading} items={t.sections.lessons.items} />
+        <LessonsSection editorId="lessons-learned" heading={t.sections.lessons.heading} items={t.sections.lessons.items} />
 
         {/* ================================================================ */}
         {/*  WHAT I'D DO DIFFERENTLY                                         */}
         {/* ================================================================ */}
         <H2 id="what-id-do-differently">{t.sections.whatIdDoDifferently.heading}</H2>
-        <Prose>{t.sections.whatIdDoDifferently.body}</Prose>
-        <StepList items={t.sections.whatIdDoDifferently.items.map(item => ({ label: item.title, detail: item.detail }))} className="mb-8" />
+        <Prose editorId="what-id-do-differently-body">{t.sections.whatIdDoDifferently.body}</Prose>
+        <StepList editorId="what-id-do-differently-steps" items={t.sections.whatIdDoDifferently.items.map(item => ({ label: item.title, detail: item.detail }))} className="mb-8" />
 
         {/* ================================================================ */}
         {/*  ENTERPRISE PATTERNS                                             */}
         {/* ================================================================ */}
         <H2 id="enterprise-patterns">{t.sections.enterprisePatterns.heading}</H2>
-        <Prose>{t.sections.enterprisePatterns.body}</Prose>
+        <Prose editorId="enterprise-patterns-body">{t.sections.enterprisePatterns.body}</Prose>
 
         {/* Built vs Enterprise table */}
         <DataTable
+          editorId="enterprise-comparison"
           headers={[lang === 'es' ? 'Patrón' : 'Pattern', lang === 'es' ? 'Lo que construí' : 'What I built', 'Enterprise']}
           rows={t.sections.enterprisePatterns.builtVsEnterprise.map(row => [row.pattern, row.built, row.enterprise])}
           highlightColumn={2}
@@ -919,14 +948,12 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
         {/* Industry applicability */}
         <H3 id="applicability">{t.sections.enterprisePatterns.applicability.heading}</H3>
         <CardGrid
+          editorId="applicability-grid"
           items={t.sections.enterprisePatterns.applicability.examples as readonly { domain: string; detail: string }[]}
           columns={2}
           className="mb-8"
           renderItem={(ex) => (
-            <div key={ex.domain} className="bg-card border border-border rounded-lg p-4">
-              <p className="font-medium text-foreground text-sm mb-1">{ex.domain}</p>
-              <p className="text-sm text-muted-foreground">{ex.detail}</p>
-            </div>
+            <DetailCard key={ex.domain} title={ex.domain} description={ex.detail} className="p-4" />
           )}
         />
 
@@ -934,73 +961,56 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
         {/*  DOWNLOADS                                                       */}
         {/* ================================================================ */}
         <H2 id="run-it-yourself">{t.downloads.section.heading}</H2>
-        <Prose>{t.downloads.section.intro}</Prose>
+        <Prose editorId="downloads-intro">{t.downloads.section.intro}</Prose>
 
         {/* Workflow cards grid */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-6">
-          {t.downloads.workflows.map(wf => (
-            <WorkflowDownloadCard
-              key={wf.id}
-              icon={wf.icon}
-              name={wf.name}
-              subtitle={wf.subtitle}
-              description={wf.description}
-              href={wf.href}
-              fileSize={wf.fileSize}
-              nodes={wf.nodes}
-              llm={'llm' in wf ? (wf as any).llm : undefined}
-              downloadLabel={t.downloads.inlineLabel}
-            />
-          ))}
-        </div>
+        <WorkflowGrid
+          editorId="workflows-grid"
+          workflows={t.downloads.workflows}
+          iconMap={AGENT_ICONS}
+          fallbackIcon={Compass}
+          downloadLabel={t.downloads.inlineLabel}
+        />
 
         {/* Download all ZIP */}
-        <div className="flex justify-center mb-8">
-          <a
-            href="/jacobo/workflows/jacobo-all-workflows.zip"
-            download
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm"
-          >
-            <Download className="w-4 h-4" />
-            {t.downloads.section.downloadAllLabel} <span className="text-primary-foreground/70">{t.downloads.section.downloadAllSize}</span>
-          </a>
-        </div>
+        <DownloadAllButton
+          editorId="download-all-zip"
+          href="/jacobo/workflows/jacobo-all-workflows.zip"
+          label={t.downloads.section.downloadAllLabel}
+          fileSize={t.downloads.section.downloadAllSize}
+        />
 
         {/* Import instructions */}
         <H3>{t.downloads.section.importHeading}</H3>
-        <StepList items={t.downloads.section.importSteps} className="mb-8" />
+        <StepList editorId="downloads-import-steps" items={t.downloads.section.importSteps} className="mb-8" />
 
         {/* ================================================================ */}
         {/*  FAQ                                                             */}
         {/* ================================================================ */}
-        <FaqSection heading={t.faq.heading} items={t.faq.items} />
+        <FaqSection editorId="faq" heading={t.faq.heading} items={t.faq.items} />
 
         {/* ================================================================ */}
         {/*  RECRUITER CTA                                                   */}
         {/* ================================================================ */}
-        <div className="my-10 relative rounded-2xl p-[1.5px] bg-gradient-theme">
-          <div className="p-6 sm:p-8 rounded-[calc(1rem-1.5px)] bg-card">
-            <p className="font-display font-semibold text-foreground text-lg mb-2">{t.cta.heading}</p>
-            <p className="text-muted-foreground leading-relaxed mb-4">{t.cta.body}</p>
-            <div className="flex gap-3">
-              <a href="https://linkedin.com/in/santifer" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0A66C2]/10 border border-[#0A66C2]/20 text-sm font-medium text-[#0A66C2] hover:bg-[#0A66C2]/20 transition-colors">
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                {t.cta.label} &rarr;
-              </a>
-              <a href="mailto:hola@santifer.io" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-card border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
-                {(t.cta as any).labelSecondary} &rarr;
-              </a>
-            </div>
-          </div>
-        </div>
+        <CaseStudyCta
+          editorId="recruiter-cta"
+          heading={t.cta.heading}
+          body={t.cta.body}
+          ctaLabel={`${t.cta.label} →`}
+          ctaHref="https://linkedin.com/in/santifer"
+          external
+          secondaryLabel={`${(t.cta as any).labelSecondary} →`}
+          secondaryHref="mailto:hola@santifer.io"
+        />
 
         {/* ================================================================ */}
         {/*  RESOURCES                                                       */}
         {/* ================================================================ */}
-        <ResourcesList heading={t.resources.heading} items={t.resources.items} />
+        <ResourcesList editorId="resources" heading={t.resources.heading} items={t.resources.items} />
       </article>
 
       <ArticleFooter
+        editorId="footer"
         role={t.footer.role}
         copyright={t.footer.copyright}
       />

@@ -190,7 +190,7 @@ export const jacoboContent = {
               name: 'HITL Handoff',
               desc: 'La válvula de escape. Escala a humano vía Slack con deep-link directo a la conversación en WATI.',
               details: [
-                '5 nodos · publica en #aut-chat',
+                '5 nodos · publica en #chat',
                 'Incluye resumen de conversación, intent detectado e historial del cliente',
                 'El humano tiene contexto completo antes de abrir el chat',
               ],
@@ -259,7 +259,7 @@ export const jacoboContent = {
             },
             {
               name: 'Slack',
-              role: 'Canal de escalado HITL (#aut-chat)',
+              role: 'Canal de escalado HITL (#chat)',
             },
           ],
         },
@@ -318,7 +318,7 @@ export const jacoboContent = {
               ],
               details: [
                 'Triggers de escalado: frustración detectada, consulta fuera de dominio, caso de garantía, petición explícita de hablar con una persona',
-                'Router activa HITL Handoff → envía notificación a Slack (#aut-chat)',
+                'Router activa HITL Handoff → envía notificación a Slack (#chat)',
                 'El mensaje de Slack incluye: resumen de la conversación, intent detectado, datos del cliente desde Airtable, razón de la escalación',
                 'Deep-link a WATI: el humano hace clic y salta directo a la conversación de WhatsApp del cliente',
                 'El humano no arranca de cero: tiene todo el contexto. Tiempo medio de resolución post-handoff: segundos, no minutos',
@@ -334,28 +334,48 @@ export const jacoboContent = {
             heading: 'El reto: cruzar dos mundos',
             body: 'El cliente habla en lenguaje natural ("el jueves a media mañana, o si no el viernes por la tarde"). La API de YouCanBookMe habla en timestamps Unix. El sub-agente tiene que traducir uno al otro y encontrar la intersección.',
           },
-          steps: [
-            {
-              label: 'ParseURL',
-              detail: 'Extrae el subdomain de la URL de YouCanBookMe para saber qué perfil de reservas usar. Diferentes tipos de reparación usan diferentes calendarios (componentes, diagnóstico, etc.).',
-            },
-            {
-              label: 'AnalizarDisponibilidad (LLM)',
-              detail: 'Un agente con MiniMax M2.5 y 15 reglas de parseo temporal convierte lenguaje natural en un array JSON estructurado: [{date, start, end, exact}]. Maneja plurales ("mañanas" → próximas 3), rangos ("de 10 a 12"), condicionales ("o si no el viernes"), redondeo (10:15 → 10:00-11:00) y filtra fines de semana automáticamente. Horario de negocio: mañana = 10-14h, tarde = 17-21h.',
-            },
-            {
-              label: 'YCBM API (3 llamadas)',
-              detail: 'CreateIntent → availabilityKey → GetAvailabilities. Obtiene los slots reales disponibles del calendario con sus timestamps.',
-            },
-            {
-              label: 'FilterSlots (el cruce)',
-              detail: 'Un nodo de código puro cruza los dos arrays: por cada rango del LLM × cada slot real de YCBM, filtra los que caen dentro del rango en timezone Europe/Madrid. Es una intersección de conjuntos: lo que el cliente quiere ∩ lo que realmente hay libre.',
-            },
-            {
-              label: 'Auto-booking condicional',
-              detail: 'Si exactamente 1 slot encaja → confirma automáticamente (zero friction: preparePatchBody → emailCheck → patchSelections → patchConfirm). Si hay varios → presenta opciones al cliente. Si hay 0 → informa y pide otra preferencia. El sub-agente tiene su propia memoria: el cliente puede refinar ("no, mejor el jueves") sin empezar de cero.',
-            },
-          ],
+          parseUrl: {
+            heading: 'ParseURL',
+            body: 'Un nodo Code que extrae el subdomain de la URL de YouCanBookMe para determinar qué perfil de reservas usar. Parsea el query string para campos dinámicos del formulario (tipo de reparación, datos del cliente). Diferentes calendarios para diferentes servicios: santifer-citav2-componentes para reparaciones de componentes, santifer-citav2-diagnostico para diagnósticos. El subdomain determina el flujo completo que seguirá la reserva.',
+          },
+          analizarDisponibilidad: {
+            heading: 'AnalizarDisponibilidad (LLM)',
+            body: 'Un agente LLM con MiniMax M2.5 convierte lenguaje natural en un array JSON estructurado: [{date, start, end, exact}]. El system prompt contiene 15 reglas de parseo temporal que cubren todos los casos reales. Incluye un Structured Output Parser para garantizar formato válido y memoria por sesión (sessionKey = teléfono/ycbmUrl) para que el cliente pueda refinar preferencias sin empezar de cero. Si no hay preferencia explícita, devuelve los próximos 3 días laborables con horario completo.',
+            rules: [
+              'Rangos por defecto: "mañana" = 10:00-14:00, "tarde" = 17:00-21:00, "todo el día" = 10:00-21:00',
+              'Plurales: "mañanas" → próximas 3 mañanas laborables',
+              'Rangos explícitos: "de 10 a 12" → start=10:00, end=12:00, exact=true',
+              'Condicionales: "o si no el viernes" → añade viernes como rango alternativo',
+              'Redondeo: 10:15 → 10:00-11:00 (bloque de 1 hora)',
+              'Filtra fines de semana automáticamente (L-V solamente)',
+              '"Media mañana" = 11:00-13:00, "a primera hora" = 10:00-11:00',
+              '"Después de comer" = 17:00-19:00',
+              'Hoy solo se incluye si quedan ≥2 horas de horario comercial',
+              'Fechas relativas: "pasado mañana", "el próximo martes" → resueltas a fecha absoluta',
+            ],
+          },
+          ycbmApi: {
+            heading: 'YCBM API (3 llamadas)',
+            body: 'Pipeline secuencial de 3 HTTP Requests contra la API de YouCanBookMe. Cada llamada depende de la anterior — no se puede paralelizar:',
+            steps: [
+              { label: 'POST /v1/intents', detail: 'Envía el subdomain → crea un intent de reserva y devuelve un ID único' },
+              { label: 'GET /v1/intents/{id}/availabilitykey', detail: 'Con el ID del intent → obtiene la clave de disponibilidad' },
+              { label: 'GET /v1/availabilities/{key}', detail: 'Con la clave → obtiene todos los slots reales disponibles con timestamps Unix' },
+            ],
+          },
+          filterSlots: {
+            heading: 'FilterSlots — El Cruce',
+            body: 'Un nodo Code puro que realiza la intersección de conjuntos: rangos del LLM × slots reales de YCBM. Convierte timestamps Unix a Europe/Madrid usando Intl.DateTimeFormat, luego filtra: localDate === r.date && localTime >= r.start && localTime < r.end. El output es un array [{date, timestamp, start}] que puede contener 0, 1, o N slots. Es el nodo más elegante del workflow: pura lógica de conjuntos, sin LLM, sin API — solo matemáticas temporales.',
+          },
+          autoBooking: {
+            heading: 'Auto-booking Condicional',
+            body: 'Un nodo If evalúa slots.length y bifurca en 3 caminos. El sub-agente tiene su propia memoria por sesión: el cliente puede refinar ("no, mejor el jueves") sin empezar de cero.',
+            paths: [
+              { condition: 'Exactamente 1 slot', action: 'Confirma automáticamente (zero friction): preparePatchBody construye form data con email, teléfono, queryVars dinámicos y comentarios → emailCheck verifica si tiene email → patchSelections (PATCH /v1/intents/{id}/selections) → patchConfirm (PATCH /v1/intents/{id}/confirm) → confirmarCita informa al cliente' },
+              { condition: 'Varios slots', action: 'escogerHora agrupa slots por fecha y presenta opciones al cliente con instrucciones contextuales' },
+              { condition: '0 slots', action: 'Informa que no hay disponibilidad en ese rango y pide otra preferencia horaria' },
+            ],
+          },
           punchline: 'El resultado: un cliente escribe "mañana a media mañana" y 3 segundos después tiene una cita confirmada con piezas reservadas. Sin formularios, sin "seleccione fecha en el calendario", sin fricción. Para un FDE, esto es la diferencia entre "hice un chatbot" y "diseñé un sistema que traduce intención humana a acciones de API".',
         },
         toolCalling: {
@@ -1055,8 +1075,16 @@ Input: "lunes a las 10"
           },
         },
         mainRouter: {
-          heading: 'Router Principal (n8n)',
-          body: 'El router principal es el cerebro de Jacobo: un workflow de n8n con 37 nodos que clasifica cada mensaje, decide qué sub-agente invocar y orquesta la respuesta. Aquí viven el tool calling, el prompt engineering y toda la lógica de enrutamiento.',
+          heading: 'Los Dos Cerebros',
+          body: 'Jacobo tiene dos routers independientes que comparten los mismos tools y sub-agentes. Uno orquesta WhatsApp, el otro gestiona las llamadas de voz. Misma lógica de negocio, dos interfaces completamente distintas.',
+          whatsappRouter: {
+            heading: 'Router WhatsApp (n8n)',
+            body: 'El cerebro de texto: un workflow de n8n con 37 nodos que clasifica cada mensaje, decide qué sub-agente invocar y orquesta la respuesta. Aquí viven el tool calling, el prompt engineering y toda la lógica de enrutamiento.',
+          },
+          voiceRouter: {
+            heading: 'Router Voz (ElevenLabs)',
+            body: 'El cerebro de voz: un agente conversacional en ElevenLabs con Gemini 2.5 Flash, knowledge bases con la documentación del negocio, y los mismos tools expuestos como webhooks. El cliente habla por teléfono y Jacobo responde en tiempo real, consultando precios, disponibilidad y gestionando citas — exactamente igual que por WhatsApp.',
+          },
         },
         deepDiveQuotes: {
           heading: 'Deep Dive: Sub-agente de Presupuestos',
@@ -1065,29 +1093,50 @@ Input: "lunes a las 10"
             heading: 'El reto: del texto libre al presupuesto estructurado',
             body: 'El cliente escribe "cuánto cuesta cambiar la pantalla de un iPhone 15 Pro Max". El router necesita un JSON con precio, stock, URLs de cita y pieza. El sub-agente conecta lenguaje natural con la base de datos de Airtable en tiempo real.',
           },
-          steps: [
-            {
-              label: 'Webhook (entrada)',
-              detail: 'Recibe modeloInput (lo que dijo el cliente) y reparacionInput del router principal vía HTTP POST.',
-            },
-            {
-              label: 'CleanModel (Code)',
-              detail: 'Normaliza el input del cliente: elimina espacios, paréntesis, guiones y pasa a minúsculas. "iPhone 15 Pro Max" → "iphone15promax". Esto permite búsquedas fuzzy en Airtable sin depender de que el cliente escriba el nombre exacto.',
-            },
-            {
-              label: 'AI Agent (GPT-4.1 mini)',
-              detail: 'El cerebro del sub-agente. Ejecuta 3 tools en secuencia: BuscarModelo (busca por modeloLimpio en Airtable) → BuscarReparacionesModelo (obtiene precios, stock y URLs de todas las reparaciones del modelo) → Structured Output Parser (formatea en JSON). Incluye Think tool para razonamiento explícito antes de cada tool call.',
-            },
-            {
-              label: 'FiltrarRespuesta (Code)',
-              detail: 'Post-procesado determinista que elimina campos irrelevantes según el estado: si hay stock → quita urlPresupuesto e idPieza; si no hay stock → quita urlCita; si precio = PRESUPUESTO → quita urlCita (la reparación no está catalogada). Valida que urlSantifer apunte al dominio correcto.',
-            },
-            {
-              label: 'Respond to Webhook',
-              detail: 'Devuelve el JSON limpio al router principal. El router usa stock (true/false) para decidir el siguiente paso: ofrecer cita (stock), ofrecer pedido urgente (sin stock) o derivar a presupuesto manual (sin catalogar).',
-            },
-          ],
-          punchline: 'El resultado: un cliente pregunta "cuánto cuesta arreglar la pantalla de mi iPhone" y en 4 segundos tiene precio real, disponibilidad de stock y un enlace directo para reservar cita o hacer pedido. Sin formularios, sin "le paso con un compañero". El sub-agente consulta 2.100 campos de Airtable y devuelve exactamente lo que el router necesita para cerrar la conversión.',
+          cleanModel: {
+            heading: 'CleanModel — Codificar conocimiento tácito',
+            body: 'Los clientes no escriben modelos como una base de datos. Escriben "iphone 15", "iPhone15 pro max", "ip 15 pro", "I-Phone 15Pro Max". Un técnico humano resolvía esto con experiencia — sabía que "el grande negro" probablemente era un Pro Max. Ese conocimiento tácito se pierde si no se diseña para ello.',
+            detail: 'CleanModel normaliza el input: elimina espacios, paréntesis, guiones y pasa a minúsculas. "iPhone 15 Pro Max" → "iphone15promax". Esto alimenta una búsqueda con SEARCH() en Airtable por campo modeloLimpio (también normalizado), permitiendo fuzzy matching sin depender de escritura exacta.',
+            insight: 'Este nodo codifica conocimiento tácito de negocio. Sin él, el agente fallaría con la mayoría de inputs reales — porque los clientes no hablan como bases de datos. Es un ejemplo de por qué construir agentes requiere entender el dominio, no solo conectar APIs.',
+          },
+          aiAgent: {
+            heading: 'AI Agent — GPT-4.1 mini vía OpenRouter',
+            body: 'El cerebro del sub-agente. System prompt con ROL ultra-scoped: "agente especializado en buscar precios". Incluye Think tool para razonamiento explícito antes de cada tool call y Simple Memory (buffer window) con sessionKey estática.',
+            tools: [
+              {
+                label: 'BuscarModelo',
+                detail: 'Busca por campo modeloLimpio en tabla Modelos → devuelve RECORD_ID, Name, URLSantiferNueva, Cita diagnóstico.',
+              },
+              {
+                label: 'BuscarReparacionesModelo',
+                detail: 'Busca por RECORD_ID → devuelve 20 tipos de reparación con "Precio, stock y cita" (pantalla original, compatible, batería, micrófono, altavoz, puerto carga, cámara trasera/delantera, etc.).',
+              },
+              {
+                label: 'Structured Output Parser',
+                detail: 'Formatea a JSON con schema: modelo, reparación, precio, stock, urlSantifer, urlCita, urlPresupuesto, urlDiagnostico, idPiezaAirtable, idModeloAirtable.',
+              },
+            ],
+            fallback: 'Si no encuentra coincidencia, el system prompt instruye: "tienes que ir acotando el modelo para obtener más resultados, hasta que te quedes con el que corresponda" — replicando el razonamiento de un humano experimentado.',
+          },
+          filtrarRespuesta: {
+            heading: 'FiltrarRespuesta — Post-procesado determinista',
+            body: 'Nodo Code que valida y limpia la respuesta del AI Agent antes de devolverla al router. Valida que urlSantifer apunte al dominio correcto (si no contiene "santiferirepair.es" → "NO DISPONIBLE EN WEB AUN"). Después aplica 3 paths de eliminación de campos según estado:',
+            rules: [
+              {
+                condition: 'stock === true',
+                action: 'Elimina urlPresupuesto, idPieza, idModelo — el cliente puede reservar cita directamente.',
+              },
+              {
+                condition: 'stock === false',
+                action: 'Elimina urlCita y urlPresupuesto — necesita pedir pieza antes de reparar.',
+              },
+              {
+                condition: 'precio === "PRESUPUESTO"',
+                action: 'Elimina urlCita e idPieza — la reparación no está catalogada, requiere valoración manual.',
+              },
+            ],
+          },
+          punchline: 'El resultado: un cliente pregunta "cuánto cuesta arreglar la pantalla de mi iPhone" y en 4 segundos tiene precio real, disponibilidad de stock y un enlace directo para reservar cita o hacer pedido. Sin formularios, sin "le paso con un compañero". El sub-agente consulta justo los campos imprescindibles de Airtable y devuelve exactamente lo que el router necesita para cerrar la conversión.',
           presupuestoPrompt: {
             heading: 'System prompt del sub-agente de presupuestos (n8n)',
             body: 'El prompt define tres herramientas (BuscarModelo, BuscarReparacionesModelo, Structured Output Parser) y un flujo de 4 pasos para devolver presupuestos estructurados con estado de stock.',
@@ -1235,9 +1284,9 @@ Presupuesto reparándolo todo junto: \${totalConDescuento.toFixed(2)} €\`;`,
           hitl: {
             heading: 'HITL Handoff: Escalada a Humano',
             body: 'La válvula de escape del sistema. Cuando Jacobo detecta que no puede resolver (cliente frustrado, caso complejo, petición fuera de scope), escala a un humano vía Slack con contexto completo.',
-            nodes: 'Webhook → Slack (#aut-chat) → Respond to Webhook',
+            nodes: 'Webhook → Slack (#chat) → Respond to Webhook',
             details: [
-              'Publica en el canal #aut-chat con emoji 🤖 como avatar',
+              'Publica en el canal #chat con emoji 🤖 como avatar',
               'El mensaje incluye: resumen de la conversación, intent detectado e historial del cliente',
               'Deep-link directo a la conversación en WATI: el humano abre y ya tiene todo el contexto',
               'Jacobo confirma al cliente que un humano le contactará, sin cortar la conversación',
@@ -1604,7 +1653,7 @@ Presupuesto reparándolo todo junto: \${totalConDescuento.toFixed(2)} €\`;`,
               name: 'HITL Handoff',
               desc: 'The escape valve. Escalates to a human via Slack with a deep-link straight into the WATI conversation.',
               details: [
-                '5 nodes · posts to #aut-chat',
+                '5 nodes · posts to #chat',
                 'Includes conversation summary, detected intent, and customer history',
                 'Human gets full context before opening the chat',
               ],
@@ -1673,7 +1722,7 @@ Presupuesto reparándolo todo junto: \${totalConDescuento.toFixed(2)} €\`;`,
             },
             {
               name: 'Slack',
-              role: 'HITL escalation channel (#aut-chat)',
+              role: 'HITL escalation channel (#chat)',
             },
           ],
         },
@@ -1732,7 +1781,7 @@ Presupuesto reparándolo todo junto: \${totalConDescuento.toFixed(2)} €\`;`,
               ],
               details: [
                 'Escalation triggers: detected frustration, out-of-domain query, warranty case, explicit request to speak with a person',
-                'Router activates HITL Handoff → sends notification to Slack (#aut-chat)',
+                'Router activates HITL Handoff → sends notification to Slack (#chat)',
                 'The Slack message includes: conversation summary, detected intent, customer data from Airtable, escalation reason',
                 'Deep-link to WATI: the human clicks and jumps straight into the customer\'s WhatsApp conversation',
                 'The human doesn\'t start from scratch: they have full context. Average post-handoff resolution time: seconds, not minutes',
@@ -1748,28 +1797,48 @@ Presupuesto reparándolo todo junto: \${totalConDescuento.toFixed(2)} €\`;`,
             heading: 'The challenge: bridging two worlds',
             body: 'The customer speaks natural language ("Thursday mid-morning, or else Friday afternoon"). The YouCanBookMe API speaks Unix timestamps. The sub-agent bridges the gap and finds the intersection.',
           },
-          steps: [
-            {
-              label: 'ParseURL',
-              detail: 'Extracts the subdomain from the YouCanBookMe URL to determine which booking profile to use. Different repair types use different calendars (components, diagnostics, etc.).',
-            },
-            {
-              label: 'AnalizarDisponibilidad (LLM)',
-              detail: 'An agent with MiniMax M2.5 and 15 temporal parsing rules converts natural language into a structured JSON array: [{date, start, end, exact}]. Handles plurals ("mornings" → next 3), ranges ("10 to 12"), conditionals ("or else Friday"), rounding (10:15 → 10:00-11:00) and filters weekends automatically. Business hours: morning = 10am-2pm, afternoon = 5pm-9pm.',
-            },
-            {
-              label: 'YCBM API (3 calls)',
-              detail: 'CreateIntent → availabilityKey → GetAvailabilities. Fetches actual available slots from the calendar with their timestamps.',
-            },
-            {
-              label: 'FilterSlots (the intersection)',
-              detail: 'A pure code node crosses both arrays: for each LLM range × each real YCBM slot, filters those falling within the range in Europe/Madrid timezone. It\'s a set intersection: what the customer wants ∩ what\'s actually available.',
-            },
-            {
-              label: 'Conditional auto-booking',
-              detail: 'If exactly 1 slot matches → auto-confirm (zero friction: preparePatchBody → emailCheck → patchSelections → patchConfirm). If multiple → present options to customer. If 0 → inform and ask for another preference. The sub-agent has its own memory: the customer can refine ("no, Thursday instead") without starting over.',
-            },
-          ],
+          parseUrl: {
+            heading: 'ParseURL',
+            body: 'A Code node that extracts the subdomain from the YouCanBookMe URL to determine which booking profile to use. Parses the query string for dynamic form fields (repair type, customer data). Different calendars for different services: santifer-citav2-componentes for component repairs, santifer-citav2-diagnostico for diagnostics. The subdomain determines the entire booking flow downstream.',
+          },
+          analizarDisponibilidad: {
+            heading: 'AnalizarDisponibilidad (LLM)',
+            body: 'An LLM agent powered by MiniMax M2.5 converts natural language into a structured JSON array: [{date, start, end, exact}]. The system prompt contains 15 temporal parsing rules covering every real-world case. Includes a Structured Output Parser to guarantee valid format and per-session memory (sessionKey = phone/ycbmUrl) so the customer can refine preferences without starting over. If no explicit preference, returns the next 3 business days with full schedule.',
+            rules: [
+              'Default ranges: "morning" = 10:00-14:00, "afternoon" = 5:00-9:00pm, "all day" = 10:00-21:00',
+              'Plurals: "mornings" → next 3 business mornings',
+              'Explicit ranges: "10 to 12" → start=10:00, end=12:00, exact=true',
+              'Conditionals: "or else Friday" → adds Friday as alternative range',
+              'Rounding: 10:15 → 10:00-11:00 (1-hour block)',
+              'Filters weekends automatically (Mon-Fri only)',
+              '"Mid-morning" = 11:00-13:00, "first thing" = 10:00-11:00',
+              '"After lunch" = 17:00-19:00',
+              'Today only included if ≥2 hours of business hours remain',
+              'Relative dates: "day after tomorrow", "next Tuesday" → resolved to absolute date',
+            ],
+          },
+          ycbmApi: {
+            heading: 'YCBM API (3 calls)',
+            body: 'Sequential pipeline of 3 HTTP Requests against the YouCanBookMe API. Each call depends on the previous one — no parallelization possible:',
+            steps: [
+              { label: 'POST /v1/intents', detail: 'Sends the subdomain → creates a booking intent and returns a unique ID' },
+              { label: 'GET /v1/intents/{id}/availabilitykey', detail: 'With the intent ID → retrieves the availability key' },
+              { label: 'GET /v1/availabilities/{key}', detail: 'With the key → fetches all real available slots with Unix timestamps' },
+            ],
+          },
+          filterSlots: {
+            heading: 'FilterSlots — The Intersection',
+            body: 'A pure Code node performing set intersection: LLM ranges × real YCBM slots. Converts Unix timestamps to Europe/Madrid using Intl.DateTimeFormat, then filters: localDate === r.date && localTime >= r.start && localTime < r.end. Output is an array [{date, timestamp, start}] that can contain 0, 1, or N slots. The most elegant node in the workflow: pure set logic, no LLM, no API — just temporal math.',
+          },
+          autoBooking: {
+            heading: 'Conditional Auto-booking',
+            body: 'An If node evaluates slots.length and branches into 3 paths. The sub-agent has its own per-session memory: the customer can refine ("no, Thursday instead") without starting over.',
+            paths: [
+              { condition: 'Exactly 1 slot', action: 'Auto-confirms (zero friction): preparePatchBody builds form data with email, phone, dynamic queryVars, and comments → emailCheck verifies email exists → patchSelections (PATCH /v1/intents/{id}/selections) → patchConfirm (PATCH /v1/intents/{id}/confirm) → confirmarCita informs the customer' },
+              { condition: 'Multiple slots', action: 'escogerHora groups slots by date and presents options to the customer with contextual instructions' },
+              { condition: '0 slots', action: 'Informs no availability in that range and asks for another time preference' },
+            ],
+          },
           punchline: 'The result: a customer writes "tomorrow mid-morning" and 3 seconds later has a confirmed appointment with reserved parts. No forms, no date picker, no friction. This is the difference between "I built a chatbot" and "I designed a system that translates human intent into API actions."',
         },
         toolCalling: {
@@ -2469,8 +2538,16 @@ Input: "lunes a las 10"
           },
         },
         mainRouter: {
-          heading: 'Main Router (n8n)',
-          body: 'The main router is Jacobo\'s brain: an n8n workflow with 37 nodes that classifies every message, decides which sub-agent to invoke, and orchestrates the response. Tool calling, prompt engineering, and all routing logic live here.',
+          heading: 'The Two Brains',
+          body: 'Jacobo has two independent routers sharing the same tools and sub-agents. One orchestrates WhatsApp, the other handles voice calls. Same business logic, two completely different interfaces.',
+          whatsappRouter: {
+            heading: 'WhatsApp Router (n8n)',
+            body: 'The text brain: an n8n workflow with 37 nodes that classifies every message, decides which sub-agent to invoke, and orchestrates the response. Tool calling, prompt engineering, and all routing logic live here.',
+          },
+          voiceRouter: {
+            heading: 'Voice Router (ElevenLabs)',
+            body: 'The voice brain: a conversational agent on ElevenLabs powered by Gemini 2.5 Flash, knowledge bases with business documentation, and the same tools exposed as webhooks. The customer talks on the phone and Jacobo responds in real time, checking prices, availability and managing appointments — exactly the same as WhatsApp.',
+          },
         },
         deepDiveQuotes: {
           heading: 'Deep Dive: Quotes Sub-agent',
@@ -2479,29 +2556,50 @@ Input: "lunes a las 10"
             heading: 'The challenge: from free text to structured quote',
             body: 'The customer writes "how much to replace the screen on an iPhone 15 Pro Max". The router needs a JSON with price, stock status, appointment and part URLs. The sub-agent bridges natural language with the Airtable database in real time.',
           },
-          steps: [
-            {
-              label: 'Webhook (input)',
-              detail: 'Receives modeloInput (what the customer said) and reparacionInput from the main router via HTTP POST.',
-            },
-            {
-              label: 'CleanModel (Code)',
-              detail: 'Normalizes customer input: strips spaces, parentheses, hyphens, and lowercases. "iPhone 15 Pro Max" → "iphone15promax". This enables fuzzy matching in Airtable without relying on exact spelling.',
-            },
-            {
-              label: 'AI Agent (GPT-4.1 mini)',
-              detail: 'The sub-agent\'s brain. Executes 3 tools sequentially: BuscarModelo (searches by modeloLimpio in Airtable) → BuscarReparacionesModelo (fetches prices, stock, and URLs for all repairs on that model) → Structured Output Parser (formats to JSON). Includes Think tool for explicit reasoning before each tool call.',
-            },
-            {
-              label: 'FiltrarRespuesta (Code)',
-              detail: 'Deterministic post-processing that strips irrelevant fields based on state: if stock available → removes urlPresupuesto and idPieza; if no stock → removes urlCita; if price = PRESUPUESTO → removes urlCita (repair not catalogued). Validates that urlSantifer points to the correct domain.',
-            },
-            {
-              label: 'Respond to Webhook',
-              detail: 'Returns clean JSON to the main router. The router uses stock (true/false) to decide the next step: offer appointment (in stock), offer rush order (no stock), or route to manual quote (not catalogued).',
-            },
-          ],
-          punchline: 'The result: a customer asks "how much to fix my iPhone screen" and in 4 seconds gets a real price, stock availability, and a direct link to book an appointment or place an order. No forms, no "let me transfer you". The sub-agent queries 2,100 Airtable fields and returns exactly what the router needs to close the conversion.',
+          cleanModel: {
+            heading: 'CleanModel — Encoding tacit knowledge',
+            body: 'Customers don\'t type model names like a database. They write "iphone 15", "iPhone15 pro max", "ip 15 pro", "I-Phone 15Pro Max". A human technician solved this with experience — they knew "the big black one" was probably a Pro Max. That tacit knowledge gets lost if you don\'t design for it.',
+            detail: 'CleanModel normalizes the input: strips spaces, parentheses, hyphens, and lowercases. "iPhone 15 Pro Max" → "iphone15promax". This feeds a SEARCH() lookup in Airtable on the modeloLimpio field (also normalized), enabling fuzzy matching without relying on exact spelling.',
+            insight: 'This node encodes tacit business knowledge. Without it, the agent would fail on most real inputs — because customers don\'t talk like databases. It\'s an example of why building agents requires domain understanding, not just connecting APIs.',
+          },
+          aiAgent: {
+            heading: 'AI Agent — GPT-4.1 mini via OpenRouter',
+            body: 'The sub-agent\'s brain. System prompt with an ultra-scoped ROLE: "agent specialized in looking up prices". Includes Think tool for explicit reasoning before each tool call and Simple Memory (buffer window) with a static sessionKey.',
+            tools: [
+              {
+                label: 'BuscarModelo',
+                detail: 'Searches by modeloLimpio field in the Models table → returns RECORD_ID, Name, URLSantiferNueva, Cita diagnóstico.',
+              },
+              {
+                label: 'BuscarReparacionesModelo',
+                detail: 'Searches by RECORD_ID → returns 20 repair types with "Price, stock & appointment" (original screen, compatible, battery, microphone, speaker, charging port, rear/front camera, etc.).',
+              },
+              {
+                label: 'Structured Output Parser',
+                detail: 'Formats to JSON with schema: modelo, reparación, precio, stock, urlSantifer, urlCita, urlPresupuesto, urlDiagnostico, idPiezaAirtable, idModeloAirtable.',
+              },
+            ],
+            fallback: 'If no match is found, the system prompt instructs: "you must keep narrowing the model to get more results, until you find the right one" — replicating a seasoned technician\'s reasoning.',
+          },
+          filtrarRespuesta: {
+            heading: 'FiltrarRespuesta — Deterministic post-processing',
+            body: 'Code node that validates and cleans the AI Agent\'s response before returning it to the router. Validates that urlSantifer points to the correct domain (if it doesn\'t contain "santiferirepair.es" → "NOT AVAILABLE ON WEB YET"). Then applies 3 field-stripping paths based on state:',
+            rules: [
+              {
+                condition: 'stock === true',
+                action: 'Strips urlPresupuesto, idPieza, idModelo — customer can book an appointment directly.',
+              },
+              {
+                condition: 'stock === false',
+                action: 'Strips urlCita and urlPresupuesto — part needs to be ordered before repair.',
+              },
+              {
+                condition: 'precio === "PRESUPUESTO"',
+                action: 'Strips urlCita and idPieza — repair not catalogued, requires manual assessment.',
+              },
+            ],
+          },
+          punchline: 'The result: a customer asks "how much to fix my iPhone screen" and in 4 seconds gets a real price, stock availability, and a direct link to book an appointment or place an order. No forms, no "let me transfer you". The sub-agent queries only the essential Airtable fields and returns exactly what the router needs to close the conversion.',
           presupuestoPrompt: {
             heading: 'Quotes sub-agent system prompt (n8n)',
             body: 'The prompt defines three tools (BuscarModelo, BuscarReparacionesModelo, Structured Output Parser) and a 4-step flow to return structured quotes with stock status.',
@@ -2649,9 +2747,9 @@ Presupuesto reparándolo todo junto: \${totalConDescuento.toFixed(2)} €\`;`,
           hitl: {
             heading: 'HITL Handoff: Human Escalation',
             body: 'The system\'s escape valve. When Jacobo detects it can\'t resolve (frustrated customer, complex case, out-of-scope request), it escalates to a human via Slack with full context.',
-            nodes: 'Webhook → Slack (#aut-chat) → Respond to Webhook',
+            nodes: 'Webhook → Slack (#chat) → Respond to Webhook',
             details: [
-              'Posts to #aut-chat channel with 🤖 emoji as avatar',
+              'Posts to #chat channel with 🤖 emoji as avatar',
               'Message includes: conversation summary, detected intent, and customer history',
               'Deep-link directly to the WATI conversation: the human opens it with full context already loaded',
               'Jacobo confirms to the customer that a human will reach out, without cutting the conversation',

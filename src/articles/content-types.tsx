@@ -31,7 +31,7 @@ function hashColor(name: string): string {
   return OUTLINE_COLORS[Math.abs(h) % OUTLINE_COLORS.length]
 }
 
-export function EditorLabel({ name, children }: { name: string; children: ReactNode }) {
+export function EditorLabel({ name, id, children }: { name: string; id?: string; children: ReactNode }) {
   const mode = useContext(EditorModeContext)
   if (!mode) return <>{children}</>
 
@@ -51,21 +51,22 @@ export function EditorLabel({ name, children }: { name: string; children: ReactN
         style={{
           left: '100%',
           width: '2rem',
-          borderTop: `1px dotted ${color}`,
+          borderTop: `1px dotted ${color}88`,
           marginTop: '0.5em',
         }}
       />
       {/* Label badge in right margin */}
       <span
-        className="absolute top-0 text-[10px] font-mono px-1.5 py-0.5 rounded pointer-events-none hidden xl:block opacity-50 hover:opacity-100 transition-opacity"
+        className="absolute top-0 text-[10px] font-mono px-1.5 py-0.5 rounded pointer-events-none hidden xl:block opacity-80 hover:opacity-100 transition-opacity"
         style={{
           left: 'calc(100% + 2rem)',
           whiteSpace: 'nowrap',
           color,
-          border: `1px dotted ${color}`,
+          backgroundColor: `${color}18`,
+          border: `1px solid ${color}66`,
         }}
       >
-        {name}
+        {name}{id && <span style={{ opacity: 0.7 }}> #{id}</span>}
       </span>
       {children}
     </div>
@@ -78,8 +79,8 @@ export function EditorLabel({ name, children }: { name: string; children: ReactN
 
 export function H2({ id, children, className }: { id: string; children: ReactNode; className?: string }) {
   return (
-    <EditorLabel name="H2">
-      <h2 id={id} className={`group font-display text-2xl md:text-3xl font-bold text-foreground mt-16 mb-6 scroll-mt-24 ${className ?? ''}`}>
+    <EditorLabel name="H2" id={id}>
+      <h2 id={id} className={`group font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground mt-16 mb-6 scroll-mt-24 ${className ?? ''}`}>
         <a href={`#${id}`} className="hover:text-primary transition-colors">
           {children}
           <span className="ml-2 opacity-0 group-hover:opacity-100 text-muted-foreground transition-opacity">#</span>
@@ -101,10 +102,10 @@ interface HeadingProps {
 }
 
 export function H3({ id, icon, children, className }: HeadingProps) {
-  const base = 'font-display text-xl font-bold text-foreground mt-10 mb-4 scroll-mt-24'
+  const base = 'font-display text-2xl font-semibold text-foreground mt-10 mb-4 scroll-mt-24'
   const withIcon = icon ? 'flex items-center gap-2' : ''
   return (
-    <EditorLabel name="H3">
+    <EditorLabel name="H3" id={id}>
       <h3 id={id} className={`${base} ${withIcon} ${className ?? ''}`}>
         {icon}{children}
       </h3>
@@ -117,10 +118,10 @@ export function H3({ id, icon, children, className }: HeadingProps) {
 // ---------------------------------------------------------------------------
 
 export function H4({ id, icon, children, className }: HeadingProps) {
-  const base = 'font-display text-lg font-bold text-foreground mt-8 mb-3 scroll-mt-24'
+  const base = 'font-display text-xl font-medium text-foreground mt-8 mb-3 scroll-mt-24'
   const withIcon = icon ? 'flex items-center gap-2' : ''
   return (
-    <EditorLabel name="H4">
+    <EditorLabel name="H4" id={id}>
       <h4 id={id} className={`${base} ${withIcon} ${className ?? ''}`}>
         {icon}{children}
       </h4>
@@ -136,16 +137,17 @@ interface ProseProps {
   variant?: 'hook' | 'body'
   className?: string
   children: ReactNode
+  editorId?: string
 }
 
 const proseVariants = {
   hook: 'text-lg text-foreground leading-relaxed mb-4',
-  body: 'text-muted-foreground leading-relaxed mb-4',
+  body: 'text-base md:text-lg text-muted-foreground leading-relaxed mb-5',
 } as const
 
-export function Prose({ variant = 'body', className, children }: ProseProps) {
+export function Prose({ variant = 'body', className, children, editorId }: ProseProps) {
   return (
-    <EditorLabel name={`Prose:${variant}`}>
+    <EditorLabel name={`Prose:${variant}`} id={editorId}>
       <p className={`${proseVariants[variant]} ${className ?? ''}`}>{children}</p>
     </EditorLabel>
   )
@@ -179,12 +181,13 @@ export function LabeledText({ label, children, className }: LabeledTextProps) {
 interface CalloutProps {
   children: ReactNode
   className?: string
+  editorId?: string
 }
 
-export function Callout({ children, className }: CalloutProps) {
+export function Callout({ children, className, editorId }: CalloutProps) {
   return (
-    <EditorLabel name="Callout">
-      <div className={`bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 ${className ?? ''}`}>
+    <EditorLabel name="Callout" id={editorId}>
+      <div className={`bg-primary/5 border-l-4 border-primary/40 rounded-r-lg pl-5 pr-4 py-4 mb-6 ${className ?? ''}`}>
         <p className="text-base text-foreground font-medium leading-relaxed">{children}</p>
       </div>
     </EditorLabel>
@@ -199,12 +202,13 @@ interface InfoCardProps {
   heading?: ReactNode
   children: ReactNode
   className?: string
+  editorId?: string
 }
 
-export function InfoCard({ heading, children, className }: InfoCardProps) {
+export function InfoCard({ heading, children, className, editorId }: InfoCardProps) {
   return (
-    <EditorLabel name="InfoCard">
-      <div className={`bg-card border border-border rounded-lg p-5 mb-6 ${className ?? ''}`}>
+    <EditorLabel name="InfoCard" id={editorId}>
+      <div className={`bg-card border border-border rounded-lg p-5 mb-6 hover:border-primary/20 transition-colors ${className ?? ''}`}>
         {heading && <p className="font-medium text-foreground mb-2">{heading}</p>}
         {children}
       </div>
@@ -224,14 +228,15 @@ interface CardStackItem {
 interface CardStackProps {
   items: readonly CardStackItem[]
   className?: string
+  editorId?: string
 }
 
-export function CardStack({ items, className }: CardStackProps) {
+export function CardStack({ items, className, editorId }: CardStackProps) {
   return (
-    <EditorLabel name="CardStack">
+    <EditorLabel name="CardStack" id={editorId}>
       <div className={`space-y-3 mb-4 ${className ?? ''}`}>
         {items.map((item, i) => (
-          <div key={i} className="bg-card border border-border rounded-lg p-4">
+          <div key={i} className="bg-card border border-border rounded-lg p-4 hover:border-primary/20 transition-colors">
             <p className="font-medium text-foreground text-sm mb-1">{item.title}</p>
             <p className="text-sm text-muted-foreground">{item.detail}</p>
           </div>
@@ -261,12 +266,13 @@ interface BulletListProps {
   marker?: 'number' | 'bullet'
   variant?: 'standalone' | 'in-card'
   className?: string
+  editorId?: string
 }
 
-export function BulletList({ items, marker = 'bullet', variant = 'standalone', className }: BulletListProps) {
+export function BulletList({ items, marker = 'bullet', variant = 'standalone', className, editorId }: BulletListProps) {
   const outer = variant === 'standalone' ? 'space-y-3 mb-4' : 'space-y-3'
   return (
-    <EditorLabel name="BulletList">
+    <EditorLabel name="BulletList" id={editorId}>
       <div className={`${outer} ${className ?? ''}`}>
         {items.map((item, i) => (
           <div key={i} className="flex gap-3">
@@ -275,11 +281,11 @@ export function BulletList({ items, marker = 'bullet', variant = 'standalone', c
             </span>
             {isStructured(item) ? (
               <div>
-                <p className="font-medium text-foreground">{item.label}</p>
-                <p className="text-muted-foreground">{item.detail}</p>
+                <p className="font-medium text-foreground text-base">{item.label}</p>
+                <p className="text-base text-muted-foreground">{item.detail}</p>
               </div>
             ) : (
-              <p className="text-muted-foreground">{item}</p>
+              <p className="text-base text-muted-foreground">{item}</p>
             )}
           </div>
         ))}
@@ -292,10 +298,10 @@ export function BulletList({ items, marker = 'bullet', variant = 'standalone', c
 // 9. StepList (numbered BulletList)
 // ---------------------------------------------------------------------------
 
-export function StepList({ items, className }: Omit<BulletListProps, 'marker' | 'variant'>) {
+export function StepList({ items, className, editorId }: Omit<BulletListProps, 'marker' | 'variant'>) {
   const outer = `space-y-3 mb-4 ${className ?? ''}`
   return (
-    <EditorLabel name="StepList">
+    <EditorLabel name="StepList" id={editorId}>
       <div className={outer}>
         {items.map((item, i) => (
           <div key={i} className="flex gap-3">
@@ -304,11 +310,11 @@ export function StepList({ items, className }: Omit<BulletListProps, 'marker' | 
             </span>
             {isStructured(item) ? (
               <div>
-                <p className="font-medium text-foreground">{item.label}</p>
-                <p className="text-muted-foreground">{item.detail}</p>
+                <p className="font-medium text-foreground text-base">{item.label}</p>
+                <p className="text-base text-muted-foreground">{item.detail}</p>
               </div>
             ) : (
-              <p className="text-muted-foreground">{item}</p>
+              <p className="text-base text-muted-foreground">{item}</p>
             )}
           </div>
         ))}
@@ -323,22 +329,24 @@ export function StepList({ items, className }: Omit<BulletListProps, 'marker' | 
 
 interface CardGridProps<T> {
   items: readonly T[]
-  columns?: 2 | 3 | 4 | 5
+  columns?: 1 | 2 | 3 | 4 | 5
   gap?: string
   className?: string
+  editorId?: string
   renderItem: (item: T, index: number) => ReactNode
 }
 
 const colsMap = {
+  1: 'grid-cols-1',
   2: 'sm:grid-cols-2',
   3: 'sm:grid-cols-3',
   4: 'sm:grid-cols-4',
   5: 'sm:grid-cols-5',
 } as const
 
-export function CardGrid<T>({ items, columns = 2, gap = 'gap-3', className, renderItem }: CardGridProps<T>) {
+export function CardGrid<T>({ items, columns = 2, gap = 'gap-3', className, editorId, renderItem }: CardGridProps<T>) {
   return (
-    <EditorLabel name="CardGrid">
+    <EditorLabel name="CardGrid" id={editorId}>
       <div className={`grid ${colsMap[columns]} ${gap} ${className ?? ''}`}>
         {items.map((item, i) => renderItem(item, i))}
       </div>
@@ -360,11 +368,12 @@ interface StackGridProps {
   items: readonly StackItem[]
   columns?: 2 | 3 | 4
   className?: string
+  editorId?: string
 }
 
-export function StackGrid({ items, columns = 4, className }: StackGridProps) {
+export function StackGrid({ items, columns = 4, className, editorId }: StackGridProps) {
   return (
-    <EditorLabel name="StackGrid">
+    <EditorLabel name="StackGrid" id={editorId}>
       <div className={`grid grid-cols-2 ${colsMap[columns]} gap-3 mb-8 ${className ?? ''}`}>
         {items.map(s => (
           <div key={s.name} className="bg-card border border-border rounded-lg p-5 flex flex-col items-center text-center">
@@ -389,14 +398,17 @@ interface PhotoItem {
 }
 
 interface Photo1Props extends PhotoItem {
+  caption?: string
   className?: string
+  editorId?: string
 }
 
-export function Photo1({ src, alt, loading = 'lazy', className }: Photo1Props) {
+export function Photo1({ src, alt, caption, loading = 'lazy', className, editorId }: Photo1Props) {
   return (
-    <EditorLabel name="Photo1">
-      <figure className={`rounded-lg overflow-hidden border border-border mb-6 ${className ?? ''}`}>
+    <EditorLabel name="Photo1" id={editorId}>
+      <figure className={`rounded-lg overflow-hidden border border-border shadow-lg mb-6 ${className ?? ''}`}>
         <img src={src} alt={alt} className="w-full h-auto" loading={loading} />
+        {caption && <figcaption className="px-4 py-2 text-sm text-muted-foreground text-center bg-card">{caption}</figcaption>}
       </figure>
     </EditorLabel>
   )
@@ -404,19 +416,24 @@ export function Photo1({ src, alt, loading = 'lazy', className }: Photo1Props) {
 
 interface Photo2Props {
   items: readonly [PhotoItem, PhotoItem]
+  caption?: string
   className?: string
+  editorId?: string
 }
 
-export function Photo2({ items, className }: Photo2Props) {
+export function Photo2({ items, caption, className, editorId }: Photo2Props) {
   return (
-    <EditorLabel name="Photo2">
-      <div className={`grid grid-cols-2 gap-3 mb-6 ${className ?? ''}`}>
-        {items.map(item => (
-          <figure key={item.src} className="rounded-lg overflow-hidden border border-border">
-            <img src={item.src} alt={item.alt} className="w-full h-auto" loading={item.loading ?? 'lazy'} />
-          </figure>
-        ))}
-      </div>
+    <EditorLabel name="Photo2" id={editorId}>
+      <figure className={`rounded-lg overflow-hidden border border-border shadow-lg mb-6 ${className ?? ''}`}>
+        <div className="grid grid-cols-2 gap-0">
+          {items.map(item => (
+            <div key={item.src} className="overflow-hidden">
+              <img src={item.src} alt={item.alt} className="w-full h-auto" loading={item.loading ?? 'lazy'} />
+            </div>
+          ))}
+        </div>
+        {caption && <figcaption className="px-4 py-2 text-sm text-muted-foreground text-center bg-card">{caption}</figcaption>}
+      </figure>
     </EditorLabel>
   )
 }
@@ -424,14 +441,15 @@ export function Photo2({ items, className }: Photo2Props) {
 interface Photo3Props {
   items: readonly [PhotoItem, PhotoItem, PhotoItem]
   className?: string
+  editorId?: string
 }
 
-export function Photo3({ items, className }: Photo3Props) {
+export function Photo3({ items, className, editorId }: Photo3Props) {
   return (
-    <EditorLabel name="Photo3">
+    <EditorLabel name="Photo3" id={editorId}>
       <div className={`grid grid-cols-3 gap-3 mb-6 ${className ?? ''}`}>
         {items.map(item => (
-          <figure key={item.src} className="rounded-lg overflow-hidden border border-border">
+          <figure key={item.src} className="rounded-lg overflow-hidden border border-border shadow-md">
             <img src={item.src} alt={item.alt} className="w-full h-auto" loading={item.loading ?? 'lazy'} />
           </figure>
         ))}
@@ -452,16 +470,17 @@ interface ToolListItem {
 interface ToolListProps {
   items: readonly ToolListItem[]
   className?: string
+  editorId?: string
 }
 
-export function ToolList({ items, className }: ToolListProps) {
+export function ToolList({ items, className, editorId }: ToolListProps) {
   return (
-    <EditorLabel name="ToolList">
-      <div className={`space-y-2 mb-6 ${className ?? ''}`}>
+    <EditorLabel name="ToolList" id={editorId}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 ${className ?? ''}`}>
         {items.map(tool => (
-          <div key={tool.name} className="flex items-start gap-3 bg-card border border-border rounded-lg p-4">
-            <code className="text-xs text-primary font-mono shrink-0 mt-0.5">{tool.name}</code>
-            <p className="text-xs text-muted-foreground">{tool.desc}</p>
+          <div key={tool.name} className="rounded-lg border border-border/50 bg-muted/30 px-4 py-3">
+            <code className="text-sm text-primary font-mono font-semibold">{tool.name}</code>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{tool.desc}</p>
           </div>
         ))}
       </div>
@@ -481,16 +500,17 @@ interface ConditionItem {
 interface ConditionListProps {
   items: readonly ConditionItem[]
   className?: string
+  editorId?: string
 }
 
-export function ConditionList({ items, className }: ConditionListProps) {
+export function ConditionList({ items, className, editorId }: ConditionListProps) {
   return (
-    <EditorLabel name="ConditionList">
-      <div className={`space-y-2 mb-6 ${className ?? ''}`}>
+    <EditorLabel name="ConditionList" id={editorId}>
+      <div className={`space-y-3 mb-6 ${className ?? ''}`}>
         {items.map((f, i) => (
-          <div key={i} className="flex items-start gap-2 text-xs">
-            <span className="font-medium text-foreground shrink-0">{f.condition}</span>
-            <span className="text-muted-foreground">{f.action}</span>
+          <div key={i} className="rounded-lg border border-border/50 bg-muted/30 px-4 py-3">
+            <span className="text-sm font-semibold text-primary">{f.condition}</span>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{f.action}</p>
           </div>
         ))}
       </div>
@@ -502,9 +522,9 @@ export function ConditionList({ items, className }: ConditionListProps) {
 // 11d. NodeLabel — monospace workflow node count
 // ---------------------------------------------------------------------------
 
-export function NodeLabel({ children, className }: { children: ReactNode; className?: string }) {
+export function NodeLabel({ children, className, editorId }: { children: ReactNode; className?: string; editorId?: string }) {
   return (
-    <EditorLabel name="NodeLabel">
+    <EditorLabel name="NodeLabel" id={editorId}>
       <p className={`text-xs text-muted-foreground font-mono mb-3 ${className ?? ''}`}>{children}</p>
     </EditorLabel>
   )
@@ -523,16 +543,17 @@ interface CodeBlockProps {
   children?: ReactNode
   segments?: readonly CodeSegment[]
   className?: string
+  editorId?: string
 }
 
-export function CodeBlock({ children, segments, className }: CodeBlockProps) {
+export function CodeBlock({ children, segments, className, editorId }: CodeBlockProps) {
   if (segments) {
     return (
-      <EditorLabel name="CodeBlock">
-        <div className={`bg-muted/30 border border-border rounded-lg overflow-hidden mb-6 ${className ?? ''}`}>
+      <EditorLabel name="CodeBlock" id={editorId}>
+        <div className={`bg-[#0F172A] border border-white/10 rounded-lg overflow-hidden mb-6 ${className ?? ''}`}>
           {segments.map((seg, i) => (
             <div key={i}>
-              <pre className="px-4 py-3 text-xs whitespace-pre-wrap font-mono text-foreground overflow-x-auto">
+              <pre className="p-5 text-sm leading-[1.7] whitespace-pre-wrap font-mono text-foreground overflow-x-auto">
                 {seg.code}
               </pre>
               {seg.annotations?.map((ann, j) => (
@@ -548,8 +569,8 @@ export function CodeBlock({ children, segments, className }: CodeBlockProps) {
     )
   }
   return (
-    <EditorLabel name="CodeBlock">
-      <pre className={`bg-muted/30 border border-border rounded-lg p-4 text-xs overflow-x-auto whitespace-pre-wrap font-mono text-foreground mb-6 ${className ?? ''}`}>
+    <EditorLabel name="CodeBlock" id={editorId}>
+      <pre className={`bg-[#0F172A] border border-white/10 rounded-lg p-5 text-sm leading-[1.7] overflow-x-auto whitespace-pre-wrap font-mono text-foreground mb-6 ${className ?? ''}`}>
         {children}
       </pre>
     </EditorLabel>
@@ -578,15 +599,16 @@ interface AccordionProps {
   items: readonly AccordionSimpleItem[] | readonly AccordionRichItem[]
   variant?: 'simple' | 'rich'
   className?: string
+  editorId?: string
 }
 
 function isRichItem(item: AccordionSimpleItem | AccordionRichItem): item is AccordionRichItem {
   return 'details' in item
 }
 
-export function Accordion({ items, variant = 'simple', className }: AccordionProps) {
+export function Accordion({ items, variant = 'simple', className, editorId }: AccordionProps) {
   return (
-    <EditorLabel name="Accordion">
+    <EditorLabel name="Accordion" id={editorId}>
       <div className={`space-y-3 mb-8 ${className ?? ''}`}>
         {variant === 'simple'
           ? (items as readonly AccordionSimpleItem[]).map((item, i) => (
@@ -636,17 +658,18 @@ interface DataTableProps {
   rows: readonly (readonly string[])[]
   highlightColumn?: number
   className?: string
+  editorId?: string
 }
 
-export function DataTable({ headers, rows, highlightColumn, className }: DataTableProps) {
+export function DataTable({ headers, rows, highlightColumn, className, editorId }: DataTableProps) {
   return (
-    <EditorLabel name="DataTable">
+    <EditorLabel name="DataTable" id={editorId}>
       <div className={`overflow-x-auto mb-6 ${className ?? ''}`}>
-        <table className="w-full text-sm">
+        <table className="w-full text-base">
           <thead>
             <tr className="border-b border-border">
               {headers.map((h, i) => (
-                <th key={i} className="py-2.5 pr-4 text-left font-medium text-foreground text-xs last:pr-0">
+                <th key={i} className="py-2.5 pr-6 text-left font-semibold text-muted-foreground text-sm tracking-wider uppercase last:pr-0">
                   {h}
                 </th>
               ))}
@@ -654,11 +677,11 @@ export function DataTable({ headers, rows, highlightColumn, className }: DataTab
           </thead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={i} className="border-b border-border">
+              <tr key={i} className="border-b border-border hover:bg-white/5 transition-colors">
                 {row.map((cell, j) => (
                   <td
                     key={j}
-                    className={`py-3 pr-4 text-xs last:pr-0 ${
+                    className={`py-4 pr-6 text-sm last:pr-0 ${
                       highlightColumn !== undefined && j === highlightColumn
                         ? 'text-primary'
                         : j === 0
@@ -691,18 +714,19 @@ interface TimelineItem {
 interface TimelineProps {
   items: readonly TimelineItem[]
   className?: string
+  editorId?: string
 }
 
-export function Timeline({ items, className }: TimelineProps) {
+export function Timeline({ items, className, editorId }: TimelineProps) {
   return (
-    <EditorLabel name="Timeline">
+    <EditorLabel name="Timeline" id={editorId}>
       <div className={`space-y-0 mb-6 border-l-2 border-primary/20 ml-2 pl-6 ${className ?? ''}`}>
         {items.map((step, i) => (
           <div key={i} className="relative pb-6 last:pb-0">
             <div className="absolute -left-[1.85rem] top-1 w-3 h-3 rounded-full bg-primary border-2 border-background" />
-            <p className="text-xs text-primary font-medium mb-0.5">{step.year}</p>
-            <p className="font-medium text-foreground text-sm mb-1">{step.event}</p>
-            <p className="text-sm text-muted-foreground">{step.detail}</p>
+            <p className="text-sm text-primary font-medium mb-0.5">{step.year}</p>
+            <p className="font-semibold text-foreground text-base mb-1">{step.event}</p>
+            <p className="text-base text-muted-foreground">{step.detail}</p>
           </div>
         ))}
       </div>
@@ -724,7 +748,7 @@ function ScreenshotFigure({ src, alt, summaryEn, className }: { src: string; alt
       onMouseLeave={() => setHovered(false)}
       onClick={() => setHovered(h => !h)}
     >
-      <img src={src} alt={alt} className="w-full h-auto" loading="lazy" />
+      <img src={src} alt={alt} className="w-full h-auto brightness-[0.85]" loading="lazy" />
       <div
         className="absolute inset-0 flex items-center justify-center p-3 transition-opacity duration-200"
         style={{ backgroundColor: 'hsl(var(--background) / 0.92)', opacity: hovered ? 1 : 0, pointerEvents: hovered ? 'auto' : 'none' }}
@@ -744,12 +768,13 @@ export interface ScreenshotItem {
 interface ScreenshotGridProps {
   items: ScreenshotItem[]
   lang: 'es' | 'en'
+  editorId?: string
 }
 
-export function ScreenshotGrid({ items, lang }: ScreenshotGridProps) {
+export function ScreenshotGrid({ items, lang, editorId }: ScreenshotGridProps) {
   if (items.length < 3) {
     return (
-      <EditorLabel name="ScreenshotGrid">
+      <EditorLabel name="ScreenshotGrid" id={editorId}>
         <div className="flex justify-center gap-3 mb-6">
           {items.map(n => (
             <ScreenshotFigure
@@ -765,7 +790,7 @@ export function ScreenshotGrid({ items, lang }: ScreenshotGridProps) {
     )
   }
   return (
-    <EditorLabel name="ScreenshotGrid">
+    <EditorLabel name="ScreenshotGrid" id={editorId}>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         {items.map(n => (
           <ScreenshotFigure
@@ -784,12 +809,44 @@ interface ScreenshotCaptionProps {
   es: string
   en: string
   lang: 'es' | 'en'
+  editorId?: string
 }
 
-export function ScreenshotCaption({ es, en, lang }: ScreenshotCaptionProps) {
+export function ScreenshotCaption({ es, en, lang, editorId }: ScreenshotCaptionProps) {
   return (
-    <EditorLabel name="ScreenshotCaption">
+    <EditorLabel name="ScreenshotCaption" id={editorId}>
       <p className="text-xs text-muted-foreground mb-6 -mt-4 px-1">{lang === 'es' ? es : en}</p>
+    </EditorLabel>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// 18. DetailCard — icon + title + description + optional children
+// ---------------------------------------------------------------------------
+
+interface DetailCardProps {
+  icon?: ReactNode
+  title: ReactNode
+  description?: ReactNode
+  children?: ReactNode
+  className?: string
+  editorId?: string
+}
+
+export function DetailCard({ icon, title, description, children, className, editorId }: DetailCardProps) {
+  return (
+    <EditorLabel name="DetailCard" id={editorId}>
+      <div className={`bg-card border border-border rounded-lg p-5 hover:border-primary/20 transition-colors ${className ?? ''}`}>
+        {icon && (
+          <div className="flex items-center gap-2 mb-2">
+            {icon}
+            <p className="font-display font-semibold text-foreground text-base">{title}</p>
+          </div>
+        )}
+        {!icon && <p className="font-medium text-foreground text-base mb-1">{title}</p>}
+        {description && <p className="text-base text-muted-foreground mb-3">{description}</p>}
+        {children}
+      </div>
     </EditorLabel>
   )
 }
