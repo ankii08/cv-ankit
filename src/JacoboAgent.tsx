@@ -9,8 +9,8 @@ import {
   ArticleFooter,
   FaqSection,
   ResourcesList,
-  LessonsSection,
   MetricsGrid,
+  StatusBadge,
   CaseStudyCta,
   InlineWorkflowDownload,
   WorkflowGrid,
@@ -156,18 +156,11 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
       <FloatingToc />
       <ArticleHeader editorId="hero-header" kicker={t.header.kicker} h1={t.header.h1} subtitle={t.header.subtitle} date={t.header.date} readingTime={t.readingTime} />
 
-      {/* Proof of exit badge */}
       {'badge' in t.header && (
-        <div className="flex items-center gap-2 mb-6 -mt-4">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            {(t.header as any).badge}
-          </span>
-        </div>
+        <StatusBadge editorId="exit-badge" text={(t.header as any).badge} />
       )}
 
-      {/* Hero metrics banner */}
-      <MetricsGrid items={t.heroMetrics} columns={5} compact />
+      <MetricsGrid editorId="hero-metrics" items={t.heroMetrics} columns={5} compact />
 
       {/* TL;DR */}
       <Callout editorId="tldr-callout" className="-mx-2 sm:mx-0">{t.tldr}</Callout>
@@ -753,7 +746,11 @@ export default function JacoboAgent({ lang = 'en' }: { lang?: Lang }) {
         {/* ================================================================ */}
         {/*  LESSONS LEARNED                                                 */}
         {/* ================================================================ */}
-        <LessonsSection editorId="lessons-learned" heading={t.sections.lessons.heading} items={t.sections.lessons.items} />
+        <H2 id="lessons">{t.sections.lessons.heading}</H2>
+        <StepList
+          editorId="lessons-steps"
+          items={t.sections.lessons.items.map((l: { title: string; detail: string }) => ({ label: l.title, detail: l.detail }))}
+        />
 
         {/* ================================================================ */}
         {/*  WHAT I'D DO DIFFERENTLY                                         */}

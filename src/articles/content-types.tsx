@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
+import { motion } from 'motion/react'
 import { ChevronRight, List } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -299,18 +300,18 @@ export function BulletList({ items, marker = 'bullet', variant = 'standalone', c
 // ---------------------------------------------------------------------------
 
 export function StepList({ items, className, editorId }: Omit<BulletListProps, 'marker' | 'variant'>) {
-  const outer = `space-y-3 mb-4 ${className ?? ''}`
+  const outer = `space-y-3 mb-6 ${className ?? ''}`
   return (
     <EditorLabel name="StepList" id={editorId}>
       <div className={outer}>
         {items.map((item, i) => (
           <div key={i} className="flex gap-3">
-            <span className="text-primary font-bold shrink-0 w-6 text-center mt-0.5 text-lg">
+            <span className="text-primary font-bold shrink-0 w-6 text-center text-lg leading-snug">
               {i + 1}
             </span>
             {isStructured(item) ? (
               <div>
-                <p className="font-medium text-foreground text-base">{item.label}</p>
+                <p className="font-medium text-foreground text-base leading-snug">{item.label}</p>
                 <p className="text-base text-muted-foreground">{item.detail}</p>
               </div>
             ) : (
@@ -367,19 +368,23 @@ interface StackItem {
 interface StackGridProps {
   items: readonly StackItem[]
   columns?: 2 | 3 | 4
+  align?: 'center' | 'left'
   className?: string
   editorId?: string
 }
 
-export function StackGrid({ items, columns = 4, className, editorId }: StackGridProps) {
+export function StackGrid({ items, columns = 4, align = 'center', className, editorId }: StackGridProps) {
+  const isLeft = align === 'left'
   return (
     <EditorLabel name="StackGrid" id={editorId}>
       <div className={`grid grid-cols-2 ${colsMap[columns]} gap-3 mb-8 ${className ?? ''}`}>
         {items.map(s => (
-          <div key={s.name} className="bg-card border border-border rounded-lg p-5 flex flex-col items-center text-center">
-            <div className="mb-3">{s.icon}</div>
-            <p className="font-medium text-foreground text-sm mb-1">{s.name}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+          <div key={s.name} className={`bg-card border border-border rounded-lg p-5 ${isLeft ? 'flex items-start gap-3' : 'flex flex-col items-center text-center'}`}>
+            <div className={isLeft ? 'shrink-0 mt-0.5' : 'mb-3'}>{s.icon}</div>
+            <div>
+              <p className="font-medium text-foreground text-sm mb-1">{s.name}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -709,15 +714,55 @@ interface TimelineItem {
   year: string
   event: string
   detail: string
+  punchline?: string
 }
 
 interface TimelineProps {
   items: readonly TimelineItem[]
+  variant?: 'dot' | 'pill'
   className?: string
   editorId?: string
 }
 
-export function Timeline({ items, className, editorId }: TimelineProps) {
+function HighlightBraces({ text, className }: { text: string; className?: string }) {
+  const parts = text.split(/\{|\}/)
+  if (parts.length <= 1) return <p className={className}>{text}</p>
+  return (
+    <p className={className}>
+      {parts.map((part, i) =>
+        i === 1 ? <span key={i} className="underline decoration-primary/40 underline-offset-2">{part}</span> : part
+      )}
+    </p>
+  )
+}
+
+export function Timeline({ items, variant = 'dot', className, editorId }: TimelineProps) {
+  if (variant === 'pill') {
+    return (
+      <EditorLabel name="Timeline" id={editorId}>
+        <div className={`relative mb-6 ${className ?? ''}`}>
+          <div className="absolute left-[1.35rem] top-3 bottom-3 w-px bg-primary/20" aria-hidden="true" />
+          <div className="space-y-6">
+            {items.map((step, i) => (
+              <div key={i} className="relative flex gap-4">
+                <div className="flex flex-col items-center shrink-0 z-10">
+                  <span className="inline-flex items-center justify-center w-11 h-7 rounded-full bg-primary/15 text-primary text-xs font-bold font-display tracking-tight">{step.year}</span>
+                </div>
+                <div className="pt-0.5 min-w-0">
+                  <p className="font-display font-semibold text-foreground leading-snug">{step.event}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{step.detail}</p>
+                  {step.punchline && (
+                    <HighlightBraces text={step.punchline} className="text-sm font-medium text-primary mt-2 italic" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </EditorLabel>
+    )
+  }
+
   return (
     <EditorLabel name="Timeline" id={editorId}>
       <div className={`space-y-0 mb-6 border-l-2 border-primary/20 ml-2 pl-6 ${className ?? ''}`}>
@@ -727,6 +772,9 @@ export function Timeline({ items, className, editorId }: TimelineProps) {
             <p className="text-sm text-primary font-medium mb-0.5">{step.year}</p>
             <p className="font-semibold text-foreground text-base mb-1">{step.event}</p>
             <p className="text-base text-muted-foreground">{step.detail}</p>
+            {step.punchline && (
+              <HighlightBraces text={step.punchline} className="text-sm font-medium text-primary mt-2 italic" />
+            )}
           </div>
         ))}
       </div>
@@ -734,6 +782,49 @@ export function Timeline({ items, className, editorId }: TimelineProps) {
   )
 }
 
+
+// ---------------------------------------------------------------------------
+// 16. StoryBridge — cinematic reveal text for narrative transitions
+// ---------------------------------------------------------------------------
+
+interface StoryBridgeProps {
+  lines: readonly string[]
+  className?: string
+  editorId?: string
+}
+
+export function StoryBridge({ lines, className, editorId }: StoryBridgeProps) {
+  const mid = Math.floor(lines.length / 2)
+  return (
+    <EditorLabel name="StoryBridge" id={editorId}>
+      <div className={`text-center py-8 mb-8 ${className ?? ''}`}>
+        {[lines.slice(0, mid), lines.slice(mid)].map((block, bIdx) => (
+          <motion.div
+            key={bIdx}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.5, delay: 0.2 * bIdx, ease: 'easeOut' }}
+            className={`space-y-2 ${bIdx > 0 ? 'mt-6' : ''}`}
+          >
+            {block.map((line, idx) => {
+              const parts = line.split(/\{|\}/)
+              return (
+                <p key={idx} className="font-display text-lg sm:text-xl text-foreground leading-snug">
+                  {parts.length > 1
+                    ? parts.map((part, i) =>
+                        i === 1 ? <span key={i} className="text-primary font-semibold">{part}</span> : part
+                      )
+                    : line}
+                </p>
+              )
+            })}
+          </motion.div>
+        ))}
+      </div>
+    </EditorLabel>
+  )
+}
 
 // ---------------------------------------------------------------------------
 // 17. ScreenshotGrid + ScreenshotCaption (moved from JacoboAgent)

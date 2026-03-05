@@ -1,8 +1,23 @@
 import { useEffect } from 'react'
-import { motion } from 'motion/react'
+import {
+  ChevronRight, Wrench, Package, Globe, Users, ShieldCheck, Bell, BrainCircuit, Sparkles,
+  ClipboardList, Contact, Calculator, Cpu, ShoppingBag, Code, MessageSquareHeart, Star, Search, MapPin, Film, Bot,
+} from 'lucide-react'
 import { type N8nLang as Lang } from './n8n-i18n'
 import { buildArticleJsonLd } from './articles/json-ld'
 import { useArticleSeo } from './articles/use-article-seo'
+
+/* ------------------------------------------------------------------ */
+/* Shared SVG constants                                                */
+/* ------------------------------------------------------------------ */
+
+const STAR_SVG = <svg viewBox="0 0 20 20" className="w-3.5 h-3.5 text-yellow-400" fill="currentColor"><path d="M10 1l2.47 5.01L18 6.94l-4 3.89.94 5.51L10 13.88l-4.94 2.46.94-5.51-4-3.89 5.53-.93L10 1z"/></svg>
+
+const AIRTABLE_SVG = (cls: string) => <svg viewBox="0 0 24 24" className={cls} fill="currentColor"><path d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257zM23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z"/></svg>
+
+/* ------------------------------------------------------------------ */
+/* ReelCard — Instagram reel embed                                     */
+/* ------------------------------------------------------------------ */
 
 function ReelCard({ reelId, caption }: { reelId: string; caption: string }) {
   return (
@@ -12,38 +27,22 @@ function ReelCard({ reelId, caption }: { reelId: string; caption: string }) {
       rel="noopener noreferrer"
       className="block rounded-xl overflow-hidden border border-border bg-card group"
     >
-      {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5">
         <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[1.5px] shrink-0">
-          <img
-            src="/business-os/ig-avatar.jpg"
-            alt="santifer"
-            className="w-full h-full rounded-full object-cover"
-          />
+          <img src="/business-os/ig-avatar.jpg" alt="santifer" className="w-full h-full rounded-full object-cover" />
         </div>
         <p className="text-xs font-semibold text-foreground leading-tight flex-1 min-w-0">santifer</p>
-        <svg viewBox="0 0 24 24" className="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
+        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
       </div>
-      {/* Thumbnail with hover overlay */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: '9 / 16' }}>
-        <img
-          src={`/business-os/reel-${reelId}.jpg`}
-          alt={caption}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-        {/* Dark overlay — fades in on hover */}
+      <div className="relative overflow-hidden aspect-[9/16]">
+        <img src={`/business-os/reel-${reelId}.jpg`} alt={caption} className="w-full h-full object-cover" loading="lazy" />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-500" />
-        {/* Play button — instant appear, rounded triangle like Instagram's native */}
-        <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'translate(-3px, 1px)' }}>
+        <div className="absolute inset-0 flex items-center justify-center -translate-x-[3px] translate-y-[1px]">
           <svg viewBox="0 0 48 48" className="w-[72px] h-[72px] drop-shadow-lg" fill="none">
             <path d="M18 13.5C18 11.8 19.9 10.8 21.3 11.8L36.2 21.8C37.4 22.6 37.4 24.4 36.2 25.2L21.3 34.2C19.9 35.2 18 34.2 18 32.5V13.5Z" fill="white" fillOpacity="0.95" />
           </svg>
         </div>
       </div>
-      {/* Caption */}
       <div className="px-3 py-2.5">
         <p className="text-xs text-muted-foreground leading-relaxed">{caption}</p>
       </div>
@@ -51,16 +50,19 @@ function ReelCard({ reelId, caption }: { reelId: string; caption: string }) {
   )
 }
 import {
-  AnchorHeading,
   ArticleLayout,
   ArticleHeader,
   ArticleFooter,
   FaqSection,
   ResourcesList,
-  LessonsSection,
   MetricsGrid,
+  StatusBadge,
   CaseStudyCta,
 } from './articles/components'
+import {
+  H2, H3, Prose, Callout, BulletList, StepList, CardStack, CardGrid, StackGrid,
+  Photo1, Photo2, DataTable, Accordion, Timeline, StoryBridge, FloatingToc,
+} from './articles/content-types'
 import { businessOsContent } from './business-os-i18n'
 import ArchitectureDiagram from './ArchitectureDiagram'
 
@@ -74,8 +76,8 @@ function buildJsonLd(lang: Lang) {
     alternativeHeadline: t.seo.title,
     description: t.seo.description,
     datePublished: '2026-02-25',
-    dateModified: '2026-02-25',
-    keywords: ['Business OS', 'Airtable ERP', 'Airtable as ERP', 'no-code ERP', 'Airtable automation', 'CRM gamification', 'phone repair', 'inventory management', 'custom ERP case study', 'repair shop management'],
+    dateModified: '2026-03-05',
+    keywords: ['Business OS', 'Airtable ERP', 'Airtable as ERP', 'no-code ERP', 'Airtable automation', 'CRM gamification', 'phone repair', 'inventory management', 'custom ERP case study', 'repair shop management', 'programmatic SEO', 'Airtable CRM', 'single source of truth', 'business operating system', 'multi-base architecture'],
     images: ['https://santifer.io/business-os/og-business-os.png'],
     breadcrumbHome: t.nav.breadcrumbHome,
     breadcrumbCurrent: t.nav.breadcrumbCurrent,
@@ -83,10 +85,11 @@ function buildJsonLd(lang: Lang) {
     articleType: 'TechArticle',
     about: [
       { '@type': 'SoftwareApplication', name: 'Airtable', url: 'https://airtable.com', applicationCategory: 'Database Platform' },
+      { '@type': 'SoftwareApplication', name: 'n8n', url: 'https://n8n.io', applicationCategory: 'Workflow Automation' },
       { '@type': 'Thing', name: 'Enterprise Resource Planning' },
       { '@type': 'Thing', name: 'Business Process Automation' },
     ],
-    extra: { proficiencyLevel: 'Advanced', dependencies: 'Airtable Pro, YouCanBookMe, WATI (WhatsApp API)' },
+    extra: { proficiencyLevel: 'Advanced', dependencies: 'Airtable Pro, n8n, YouCanBookMe, WATI (WhatsApp API), DataForSEO' },
   })
 }
 
@@ -101,6 +104,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
     description: t.seo.description,
     image: 'https://santifer.io/business-os/og-business-os.png',
     publishedTime: '2026-02-25',
+    modifiedTime: '2026-03-05',
     articleTags: 'Business OS,Airtable,n8n,ERP,CRM,automation,phone repair',
     jsonLd: buildJsonLd(lang),
     xDefaultSlug: 'business-os-para-airtable',
@@ -126,7 +130,9 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
 
   return (
     <ArticleLayout lang={lang}>
+      <FloatingToc />
       <ArticleHeader
+        editorId="hero-header"
         kicker={t.header.kicker}
         h1={t.header.h1}
         subtitle={t.header.subtitle}
@@ -134,71 +140,47 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
         readingTime={t.readingTime}
       />
 
+      {'badge' in t.header && (
+        <StatusBadge editorId="exit-badge" text={(t.header as any).badge} />
+      )}
+      <MetricsGrid editorId="hero-metrics" items={t.heroMetrics} columns={5} compact />
+
       {/* Hero images — storefront */}
-      <div className="grid grid-cols-2 gap-3 mb-8 -mx-2 sm:mx-0">
-        <figure className="rounded-lg overflow-hidden border border-border">
-          <img
-            src="/business-os/hero-storefront.webp"
-            alt={lang === 'es' ? 'Fachada de Santifer iRepair — tienda de reparación de móviles en Madrid' : 'Santifer iRepair storefront — phone repair shop in Madrid'}
-            className="w-full h-full object-cover"
-            width={900} height={1200}
-          />
-        </figure>
-        <figure className="rounded-lg overflow-hidden border border-border">
-          <img
-            src="/business-os/hero-storefront-urban.webp"
-            alt={lang === 'es' ? 'Santifer iRepair de noche — vista urbana con la tienda iluminada' : 'Santifer iRepair at night — urban view with the shop lit up'}
-            className="w-full h-full object-cover"
-            width={800} height={1067}
-          />
-        </figure>
-      </div>
+      <Photo2
+        editorId="hero-storefront"
+        items={[
+          { src: '/business-os/hero-storefront.webp', alt: lang === 'es' ? 'Fachada de Santifer iRepair — tienda de reparación de móviles en Madrid' : 'Santifer iRepair storefront — phone repair shop in Madrid' },
+          { src: '/business-os/hero-storefront-urban.webp', alt: lang === 'es' ? 'Santifer iRepair de noche — vista urbana con la tienda iluminada' : 'Santifer iRepair at night — urban view with the shop lit up' },
+        ]}
+        className="mb-8"
+      />
 
       <article className="prose-custom">
         {/* Intro */}
-        <p className="text-lg text-foreground leading-relaxed mb-4">{t.intro.hook}</p>
-        <p className="text-muted-foreground leading-relaxed mb-8">{t.intro.body}</p>
+        <Prose variant="hook" editorId="intro-hook">{t.intro.hook}</Prose>
+        <Prose editorId="intro-body">{t.intro.body}</Prose>
+        <Callout editorId="tldr-callout">{t.tldr}</Callout>
 
         {/* Day in Life */}
-        <AnchorHeading id="day-in-life">{t.sections.dayInLife.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.dayInLife.body}</p>
-        <div className="space-y-4 mb-4">
-          {t.sections.dayInLife.steps.map((step, i) => (
-            <div key={i} className="flex items-start gap-3 bg-card border border-border rounded-lg p-4">
-              <span className="text-lg shrink-0">{step.emoji}</span>
-              <p className="text-sm text-muted-foreground">{step.text}</p>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <figure className="bg-card border border-border rounded-lg overflow-hidden">
-            <img
-              src="/business-os/counter-organized-front.webp"
-              alt={lang === 'es' ? 'Interior de Santifer iRepair — lo que ve el cliente al entrar: mostrador con iMac, logo y lámpara esférica' : 'Santifer iRepair interior — what the customer sees walking in: counter with iMac, logo and spherical lamp'}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-              {lang === 'es' ? 'Lo que ve el cliente al entrar — un iMac, un sistema' : 'What the customer sees walking in — one iMac, one system'}
-            </figcaption>
-          </figure>
-          <figure className="bg-card border border-border rounded-lg overflow-hidden">
-            <img
-              src="/business-os/after-elevator-lamp.webp"
-              alt={lang === 'es' ? 'Montacargas de madera junto a lámpara esférica y logo Santifer — conexión entre mostrador y taller' : 'Wooden dumbwaiter next to spherical lamp and Santifer logo — connection between counter and workshop'}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-              {lang === 'es' ? 'El montacargas — terminales suben al taller y bajan reparados' : 'The dumbwaiter — devices go up to the workshop and come down repaired'}
-            </figcaption>
-          </figure>
-        </div>
-        <p className="text-sm text-muted-foreground mt-4 mb-4 italic">
+        <H2 id="day-in-life">{t.sections.dayInLife.heading}</H2>
+        <Prose editorId="day-body">{t.sections.dayInLife.body}</Prose>
+        <StepList
+          editorId="day-steps"
+          items={t.sections.dayInLife.steps.map((step: { emoji: string; text: string }) => step.text)}
+        />
+        <Photo2
+          editorId="day-counter"
+          items={[
+            { src: '/business-os/counter-organized-front.webp', alt: lang === 'es' ? 'Interior de Santifer iRepair — lo que ve el cliente al entrar: mostrador con iMac, logo y lámpara esférica' : 'Santifer iRepair interior — what the customer sees walking in: counter with iMac, logo and spherical lamp' },
+            { src: '/business-os/after-elevator-lamp.webp', alt: lang === 'es' ? 'Montacargas de madera junto a lámpara esférica y logo Santifer — conexión entre mostrador y taller' : 'Wooden dumbwaiter next to spherical lamp and Santifer logo — connection between counter and workshop' },
+          ]}
+          caption={lang === 'es' ? 'Lo que ve el cliente al entrar / El montacargas que conecta mostrador y taller' : 'What the customer sees walking in / The dumbwaiter connecting counter and workshop'}
+        />
+        <Prose editorId="day-caption" className="text-sm italic mt-4">
           {lang === 'es'
             ? 'El cliente entra y ve un mostrador limpio. A su lado, el montacargas sube los terminales al taller y los baja reparados — la conexión física entre lo digital y lo real.'
             : 'The customer walks in and sees a clean counter. Next to it, the dumbwaiter takes devices up to the workshop and brings them back repaired — the physical connection between digital and real.'}
-        </p>
+        </Prose>
         <CaseStudyCta
           heading={t.sections.dayInLife.jacoboCta.heading}
           body={t.sections.dayInLife.jacoboCta.body}
@@ -207,302 +189,165 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
         />
 
         {/* Why Not Off-the-Shelf */}
-        <AnchorHeading id="why-custom">{t.sections.whyCustom.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-4">{t.sections.whyCustom.body}</p>
-        <div className="space-y-3 mb-4">
-          {t.sections.whyCustom.reasons.map((reason) => (
-            <div key={reason.tool} className="bg-card border border-border rounded-lg p-5">
-              <h3 className="font-display font-semibold text-foreground mb-1">{reason.tool}</h3>
-              <p className="text-sm text-muted-foreground">{reason.issue}</p>
-            </div>
-          ))}
-        </div>
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-5 mb-4">
-          <p className="text-foreground font-medium">{t.sections.whyCustom.punchline}</p>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3 mb-8">
-          <figure className="bg-card border border-border rounded-lg overflow-hidden">
-            <img
-              src="/business-os/before-chaos-desktop.webp"
-              alt={lang === 'es' ? 'Escritorio con Checkout POS, calendario, notas y cajonera de piezas — julio 2015' : 'Desktop with Checkout POS, calendar, notes and parts drawers — July 2015'}
-              className="w-full h-auto"
-              loading="lazy"
-            />
-            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-              {lang === 'es' ? 'Checkout POS + calendario + notas + cajonera etiquetada a mano (2015)' : 'Checkout POS + calendar + notes + hand-labeled drawer unit (2015)'}
-            </figcaption>
-          </figure>
-          <figure className="bg-card border border-border rounded-lg overflow-hidden">
-            <img
-              src="/business-os/before-multisystem.webp"
-              alt={lang === 'es' ? 'Checkout POS, Slack, scripts de facturación y recordatorios — todo abierto a la vez' : 'Checkout POS, Slack, invoicing scripts and reminders — all open at once'}
-              className="w-full h-auto"
-              loading="lazy"
-            />
-            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-              {lang === 'es' ? 'POS + Slack + scripts de facturación + recordatorios — el "sistema" real (2019)' : 'POS + Slack + invoicing scripts + reminders — the real "system" (2019)'}
-            </figcaption>
-          </figure>
-        </div>
+        <H2 id="why-custom">{t.sections.whyCustom.heading}</H2>
+        <Prose editorId="why-body">{t.sections.whyCustom.body}</Prose>
+        <CardStack
+          editorId="why-reasons"
+          items={t.sections.whyCustom.reasons.map((r) => ({ title: r.tool, detail: r.issue }))}
+        />
+        <Callout editorId="why-punchline">{t.sections.whyCustom.punchline}</Callout>
+        <Photo2
+          editorId="why-before-photos"
+          items={[
+            { src: '/business-os/before-chaos-desktop.webp', alt: lang === 'es' ? 'Escritorio con Checkout POS, calendario, notas y cajonera de piezas — julio 2015' : 'Desktop with Checkout POS, calendar, notes and parts drawers — July 2015' },
+            { src: '/business-os/before-multisystem.webp', alt: lang === 'es' ? 'Checkout POS, Slack, scripts de facturación y recordatorios — todo abierto a la vez' : 'Checkout POS, Slack, invoicing scripts and reminders — all open at once' },
+          ]}
+          caption={lang === 'es' ? 'POS + calendario + notas (2015) / POS + Slack + scripts + recordatorios (2019)' : 'POS + calendar + notes (2015) / POS + Slack + scripts + reminders (2019)'}
+          className="mb-8"
+        />
 
         {/* Overview */}
-        <AnchorHeading id="overview">{t.sections.overview.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.overview.body}</p>
+        <H2 id="overview">{t.sections.overview.heading}</H2>
+        <Prose editorId="overview-body">{t.sections.overview.body}</Prose>
         <MetricsGrid items={t.sections.overview.stats} />
 
         {/* Architecture Diagram */}
         <ArchitectureDiagram lang={lang} />
 
         {/* 12 Bases Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-          {t.sections.overview.bases.map((base) => (
-            <div key={base.name} className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-display font-semibold text-foreground text-sm mb-1">{base.name}</h3>
-              <p className="text-xs text-muted-foreground">{base.desc}</p>
-            </div>
-          ))}
-        </div>
+        {(() => {
+          const baseIcons = [
+            <ClipboardList className="w-5 h-5 text-primary" />,
+            <Contact className="w-5 h-5 text-primary" />,
+            <Calculator className="w-5 h-5 text-primary" />,
+            <Cpu className="w-5 h-5 text-primary" />,
+            <ShoppingBag className="w-5 h-5 text-primary" />,
+            <Code className="w-5 h-5 text-primary" />,
+            <MessageSquareHeart className="w-5 h-5 text-primary" />,
+            <Star className="w-5 h-5 text-primary" />,
+            <Search className="w-5 h-5 text-primary" />,
+            <MapPin className="w-5 h-5 text-primary" />,
+            <Film className="w-5 h-5 text-primary" />,
+            <Bot className="w-5 h-5 text-primary" />,
+          ]
+          return (
+            <StackGrid
+              editorId="overview-bases"
+              columns={3}
+              align="left"
+              items={t.sections.overview.bases.map((base: { name: string; desc: string }, i: number) => ({
+                icon: baseIcons[i],
+                name: base.name,
+                desc: base.desc,
+              }))}
+            />
+          )
+        })()}
 
         {/* End-to-End Flows */}
-        <AnchorHeading id="e2e-flows">{t.sections.e2eFlows.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.e2eFlows.body}</p>
-        <div className="space-y-4 mb-8">
+        <H2 id="e2e-flows">{t.sections.e2eFlows.heading}</H2>
+        <Prose editorId="e2e-body">{t.sections.e2eFlows.body}</Prose>
+        <div className="space-y-8 mb-8">
           {t.sections.e2eFlows.items.map((flow, idx) => {
             const flowIds = ['repair-lifecycle', 'procurement', 'content-pipeline', 'customer-lifecycle']
+            const flowIcons = [
+              <Wrench className="w-5 h-5 text-primary" />,
+              <Package className="w-5 h-5 text-primary" />,
+              <Globe className="w-5 h-5 text-primary" />,
+              <Users className="w-5 h-5 text-primary" />,
+            ]
             return (
-            <details key={flow.name} id={flowIds[idx]} open className="bg-card border border-border rounded-lg group scroll-mt-20">
-              <summary className="flex items-center gap-3 p-5 cursor-pointer select-none">
-                <span className="text-lg">{flow.icon}</span>
-                <div className="flex-1">
-                  <h3 className="font-display font-semibold text-foreground">{flow.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">{flow.summary}</p>
-                </div>
-                <span className="text-muted-foreground text-sm transition-transform group-open:rotate-180">&#9660;</span>
-              </summary>
-              <div className="px-5 pb-5 pt-0">
-                {/* Trigger line */}
-                <div className="flex items-center gap-2 text-sm text-primary mb-3">
-                  <span>&#9889;</span>
-                  <span className="font-medium">{flow.trigger}</span>
-                </div>
+            <div key={flow.name} className="scroll-mt-20">
+              <H3 id={flowIds[idx]} icon={flowIcons[idx]}>{flow.name}</H3>
+              <Prose editorId={`e2e-${idx}-summary`}>{flow.summary}</Prose>
 
-                {/* Bases touched as pills */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {flow.basesTouched.map((base: string) => (
-                    <span key={base} className="bg-primary/10 text-primary text-xs rounded-full px-2.5 py-0.5 font-medium">{base}</span>
-                  ))}
-                </div>
+              {idx === 0 && (
+                <Photo2 editorId="repair-counter-watch"
+                  items={[
+                    { src: '/business-os/after-counter-pov.webp', alt: lang === 'es' ? 'Mostrador de Santifer desde el punto de vista del empleado — iMac con Airtable abierto, citas programadas' : 'Santifer counter from employee POV — iMac with Airtable open, appointments scheduled' },
+                    { src: '/business-os/after-apple-watch-booking.webp', alt: lang === 'es' ? 'Apple Watch del técnico mostrando la próxima cita' : 'Technician Apple Watch showing next appointment' },
+                  ]}
+                  caption={lang === 'es' ? 'Planta baja: citas en Airtable / Planta alta: carga de trabajo en la muñeca' : 'Ground floor: appointments in Airtable / Upstairs: workload on the wrist'}
+                />
+              )}
+              {idx === 1 && (
+                <Photo2 editorId="proc-accessories"
+                  items={[
+                    { src: '/business-os/accessories-cases-shelf.webp', alt: lang === 'es' ? 'Fundas organizadas por modelo' : 'Cases organized by model' },
+                    { src: '/business-os/accessories-led-shelf.webp', alt: lang === 'es' ? 'Mueble LED con accesorios' : 'LED display shelf with accessories' },
+                  ]}
+                  caption={lang === 'es' ? 'Cada SKU sincronizado con Airtable — precio, margen, rotación' : 'Every SKU synced with Airtable — price, margin, rotation'}
+                />
+              )}
+              {idx === 2 && (
+                <Photo1 editorId="content-before-after" src="/business-os/web-before-after.png" alt={lang === 'es' ? 'Before/after de reparaciones reales' : 'Real repair before/after'} caption={lang === 'es' ? 'Before/after reales + reseñas — fotos del ERP, specs de gsmarena-api' : 'Real before/after + reviews — photos from ERP, specs from gsmarena-api'} />
+              )}
+              {idx === 3 && (
+                <Photo1 editorId="lifecycle-automations" src="/business-os/automatizaciones-mensajes.png" alt={lang === 'es' ? 'Automatizaciones de mensajes en Airtable' : 'Airtable messaging automations'} caption={lang === 'es' ? 'Automatizaciones de comunicación: reseñas por tier, notificaciones, campañas y WhatsApp' : 'Communication automations: tier-based reviews, notifications, campaigns and WhatsApp'} />
+              )}
 
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  {flow.details.map((detail: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-primary mt-1.5 text-xs">&#9679;</span>
-                      {detail}
-                    </li>
-                  ))}
-                </ul>
+              {/* Trigger line */}
+              <div className="flex items-center gap-2 text-sm text-primary mb-3">
+                <span>&#9889;</span>
+                <span className="font-medium">{flow.trigger}</span>
+              </div>
+
+              {/* Bases touched as pills */}
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {flow.basesTouched.map((base: string) => (
+                  <span key={base} className="bg-primary/10 text-primary text-xs rounded-full px-2.5 py-0.5 font-medium">{base}</span>
+                ))}
+              </div>
+
+              <BulletList editorId={`e2e-${idx}-details`} items={flow.details as readonly string[]} />
 
                 {/* HP0: Repair Lifecycle */}
                 {idx === 0 && (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <div className="aspect-[3/4] overflow-hidden">
-                          <img
-                            src="/business-os/after-counter-pov.webp"
-                            alt={lang === 'es' ? 'Mostrador de Santifer desde el punto de vista del empleado — iMac con Airtable abierto, citas programadas' : 'Santifer counter from employee POV — iMac with Airtable open, appointments scheduled'}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                        <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                          {lang === 'es' ? 'Planta baja — el empleado recibe al cliente con las citas del día en Airtable y la OT ya preparada' : 'Ground floor — the employee greets the customer with the day\'s appointments in Airtable and the work order ready'}
-                        </figcaption>
-                      </figure>
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <div className="aspect-[3/4] overflow-hidden">
-                          <img
-                            src="/business-os/after-apple-watch-booking.webp"
-                            alt={lang === 'es' ? 'Apple Watch del técnico mostrando la próxima cita: Reparar pantalla iPhone, 13:00–13:30 — son las 13:11' : 'Technician Apple Watch showing next appointment: Repair iPhone screen, 13:00–13:30 — it\'s 13:11'}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                        <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                          {lang === 'es' ? 'Planta alta — el técnico tiene la carga de trabajo en la muñeca. Son las 13:11, la cita era a las 13:00 🤷‍♂️' : 'Upstairs — the technician has their workload on their wrist. It\'s 13:11, appointment was at 13:00 🤷‍♂️'}
-                        </figcaption>
-                      </figure>
-                    </div>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/automatizacion.png"
-                        alt={lang === 'es' ? 'Automatización Airtable — webhook unificado que decide el flujo según stock: crear OT, cancelar cita, crear pedido' : 'Airtable automation — unified webhook that routes the flow based on stock: create work order, cancel appointment, create purchase order'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Webhook unificado — si hay stock crea la OT, si no lo hay cancela la cita y genera pedido automáticamente' : 'Unified webhook — if stock is available it creates the work order, if not it cancels the appointment and auto-generates a purchase order'}
-                      </figcaption>
-                    </figure>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <img
-                          src="/business-os/parts-organized-screens.webp"
-                          alt={lang === 'es' ? 'Pantallas de iPhone organizadas por modelo en estantería' : 'iPhone screens organized by model on shelf'}
-                          className="w-full h-auto"
-                          loading="lazy"
-                        />
-                        <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                          {lang === 'es' ? 'Cada pantalla etiquetada por modelo — ubicación asignada por Airtable' : 'Each screen labeled by model — location assigned by Airtable'}
-                        </figcaption>
-                      </figure>
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <img
-                          src="/business-os/parts-pcb-microscope.webp"
-                          alt={lang === 'es' ? 'Técnico trabajando con microscopio en placa PCB — microsoldadura de precisión' : 'Technician working with microscope on PCB board — precision microsoldering'}
-                          className="w-full h-auto"
-                          loading="lazy"
-                        />
-                        <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                          {lang === 'es' ? 'Piezas ordenadas → el técnico se centra en lo que importa' : 'Parts organized → the technician focuses on what matters'}
-                        </figcaption>
-                      </figure>
-                    </div>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/airtable-ot-repair.webp"
-                        alt={lang === 'es' ? 'Interfaz Airtable — pestaña de reparación con piezas, garantías y accesorios' : 'Airtable interface — repair tab with parts, warranties and accessories'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'OT en Airtable — reparación, garantías y accesorios' : 'Work order in Airtable — repair, warranties and accessories'}
-                      </figcaption>
-                    </figure>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/airtable-warranties.png"
-                        alt={lang === 'es' ? 'Interfaz Airtable de garantías — cada pieza vinculada a proveedor, estado y pedido original' : 'Airtable warranties interface — each part linked to supplier, status and original order'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Gestión de garantías: cada pieza defectuosa vinculada a su proveedor, pedido original y estado de reclamación' : 'Warranty management: each defective part linked to its supplier, original order and claim status'}
-                      </figcaption>
-                    </figure>
+                    <Photo1
+                      editorId="repair-automation"
+                      src="/business-os/automatizacion.png"
+                      alt={lang === 'es' ? 'Automatización Airtable — webhook unificado que decide el flujo según stock' : 'Airtable automation — unified webhook that routes the flow based on stock'}
+                      caption={lang === 'es' ? 'Webhook unificado — si hay stock crea la OT, si no cancela cita y genera pedido' : 'Unified webhook — creates work order if in stock, cancels appointment and auto-orders if not'}
+                    />
+                    <Photo2
+                      editorId="repair-parts"
+                      items={[
+                        { src: '/business-os/parts-organized-screens.webp', alt: lang === 'es' ? 'Pantallas de iPhone organizadas por modelo en estantería' : 'iPhone screens organized by model on shelf' },
+                        { src: '/business-os/parts-pcb-microscope.webp', alt: lang === 'es' ? 'Técnico trabajando con microscopio en placa PCB' : 'Technician working with microscope on PCB board' },
+                      ]}
+                      caption={lang === 'es' ? 'Piezas organizadas por Airtable / El técnico se centra en lo que importa' : 'Parts organized by Airtable / The technician focuses on what matters'}
+                    />
+                    <Photo1
+                      editorId="repair-ot"
+                      src="/business-os/airtable-ot-repair.webp"
+                      alt={lang === 'es' ? 'Interfaz Airtable — pestaña de reparación con piezas, garantías y accesorios' : 'Airtable interface — repair tab with parts, warranties and accessories'}
+                      caption={lang === 'es' ? 'OT en Airtable — reparación, garantías y accesorios' : 'Work order in Airtable — repair, warranties and accessories'}
+                    />
+                    <Photo1
+                      editorId="repair-warranties"
+                      src="/business-os/airtable-warranties.png"
+                      alt={lang === 'es' ? 'Interfaz Airtable de garantías' : 'Airtable warranties interface'}
+                      caption={lang === 'es' ? 'Gestión de garantías: pieza → proveedor → pedido original → estado de reclamación' : 'Warranty management: part → supplier → original order → claim status'}
+                    />
                   </>
                 )}
 
                 {/* HP1: Procurement */}
                 {idx === 1 && (
                   <>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-4">
-                      <img
-                        src="/business-os/airtable-inventory.png"
-                        alt={lang === 'es' ? 'Interfaz Airtable de inventario — pieza con foto real, stock, ubicación física en tienda (armario, cajón) y proveedor' : 'Airtable inventory interface — part with real photo, stock, physical store location (cabinet, drawer) and supplier'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Ficha de pieza: stock, proveedor, foto real y ubicación física en tienda (armario, cajón, posición). El técnico sabe exactamente dónde ir a buscarla.' : 'Part record: stock, supplier, real photo and physical store location (cabinet, drawer, position). The technician knows exactly where to find it.'}
-                      </figcaption>
-                    </figure>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/airtable-inventory-2.png"
-                        alt={lang === 'es' ? 'Segunda vista de inventario — foto de ubicación real en estantería junto a datos del componente' : 'Second inventory view — real shelf location photo next to component data'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'La foto de ubicación es real: el empleado ve en Airtable la estantería exacta donde está la pieza' : 'The location photo is real: the employee sees in Airtable the exact shelf where the part is'}
-                      </figcaption>
-                    </figure>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/airtable-purchase-orders.png"
-                        alt={lang === 'es' ? 'Interfaz Airtable de pedidos — detalle del pedido con proveedor, pieza, OT vinculada y botón de procesar' : 'Airtable purchase orders interface — order detail with supplier, part, linked work order and process button'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Pedido a proveedor: pieza, OT vinculada, tracking y botón para procesar. Stock bajo → pedido automático → recepción → inventario actualizado.' : 'Supplier order: part, linked work order, tracking and process button. Low stock → auto order → reception → inventory updated.'}
-                      </figcaption>
-                    </figure>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <img
-                          src="/business-os/accessories-cases-shelf.webp"
-                          alt={lang === 'es' ? 'Mueble alto con fundas de móvil organizadas por modelo' : 'Tall shelf with phone cases organized by model'}
-                          className="w-full h-auto"
-                          loading="lazy"
-                        />
-                        <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                          {lang === 'es' ? 'Fundas organizadas por modelo — cada SKU sincronizado con Airtable' : 'Cases organized by model — every SKU synced with Airtable'}
-                        </figcaption>
-                      </figure>
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <img
-                          src="/business-os/accessories-led-shelf.webp"
-                          alt={lang === 'es' ? 'Mueble LED con accesorios expuestos — fundas AirPods, altavoces, cables y cargadores' : 'LED display shelf with accessories — AirPods cases, speakers, cables and chargers'}
-                          className="w-full h-auto"
-                          loading="lazy"
-                        />
-                        <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                          {lang === 'es' ? 'Cada accesorio gestionado en Airtable — precio, margen, rotación' : 'Every accessory managed in Airtable — price, margin, rotation'}
-                        </figcaption>
-                      </figure>
-                    </div>
+                    <Photo1 editorId="proc-inventory" className="mt-4" src="/business-os/airtable-inventory.png" alt={lang === 'es' ? 'Interfaz Airtable de inventario — pieza con foto real, stock, ubicación física' : 'Airtable inventory interface — part with real photo, stock, physical location'} caption={lang === 'es' ? 'Ficha de pieza: stock, proveedor, foto real y ubicación física (armario, cajón)' : 'Part record: stock, supplier, real photo and physical location (cabinet, drawer)'} />
+                    <Photo1 editorId="proc-inventory-2" src="/business-os/airtable-inventory-2.png" alt={lang === 'es' ? 'Segunda vista de inventario — foto de ubicación real' : 'Second inventory view — real shelf location photo'} caption={lang === 'es' ? 'Foto de ubicación real: el empleado ve la estantería exacta' : 'Real location photo: the employee sees the exact shelf'} />
+                    <Photo1 editorId="proc-orders" src="/business-os/airtable-purchase-orders.png" alt={lang === 'es' ? 'Interfaz Airtable de pedidos' : 'Airtable purchase orders interface'} caption={lang === 'es' ? 'Stock bajo → pedido automático → recepción → inventario actualizado' : 'Low stock → auto order → reception → inventory updated'} />
                   </>
                 )}
 
                 {/* HP2: Content Pipeline */}
                 {idx === 2 && (
                   <>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-4">
-                      <img
-                        src="/business-os/airtable-models-catalog.png"
-                        alt={lang === 'es' ? 'Interfaz Airtable del catálogo de modelos — cada modelo con sus reparaciones disponibles, precios y fotos' : 'Airtable models catalog interface — each model with available repairs, prices and photos'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Catálogo de modelos en Airtable: de aquí salen las landings, los precios y las fotos de cada reparación. Esto es lo que alimenta la web.' : 'Models catalog in Airtable: this is where the landings, prices and photos for each repair come from. This is what feeds the website.'}
-                      </figcaption>
-                    </figure>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/web-landing-hero.png"
-                        alt={lang === 'es' ? 'Landing de reparación iPhone 11 — precio, CTA, reseñas de Google y especificaciones, todo generado desde Airtable' : 'iPhone 11 repair landing — price, CTA, Google reviews and specs, all generated from Airtable'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Landing generada al 100% desde Airtable: precio, reseñas de Google, specs del terminal (vía gsmarena-api) y texto SEO dinámico con fórmulas' : 'Landing 100% generated from Airtable: price, Google reviews, device specs (via gsmarena-api) and dynamic SEO copy from formulas'}
-                      </figcaption>
-                    </figure>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/web-repairs-catalog.png"
-                        alt={lang === 'es' ? 'Catálogo de reparaciones iPhone 11 — cada tarjeta con foto, precio y disponibilidad generados desde el ERP' : 'iPhone 11 repair catalog — each card with photo, price and availability generated from the ERP'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Catálogo de averías por modelo: cada tarjeta (foto, precio, disponibilidad) generada desde el ERP' : 'Repair catalog by model: each card (photo, price, availability) generated from the ERP'}
-                      </figcaption>
-                    </figure>
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img
-                        src="/business-os/web-before-after.png"
-                        alt={lang === 'es' ? 'Before/after de reparaciones reales con reseñas — fotos y texto leídos del ERP automáticamente' : 'Real repair before/after with reviews — photos and text read from the ERP automatically'}
-                        className="w-full h-auto"
-                        loading="lazy"
-                      />
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                        {lang === 'es' ? 'Before/after reales + reseñas: las fotos salen del ERP, el texto de las specs de gsmarena-api' : 'Real before/after + reviews: photos come from the ERP, spec text from gsmarena-api'}
-                      </figcaption>
-                    </figure>
+                    <Photo1 editorId="content-catalog" className="mt-4" src="/business-os/airtable-models-catalog.png" alt={lang === 'es' ? 'Catálogo de modelos en Airtable' : 'Airtable models catalog'} caption={lang === 'es' ? 'Catálogo de modelos: de aquí salen landings, precios y fotos' : 'Models catalog: this feeds landings, prices and photos'} />
+                    <Photo1 editorId="content-landing" src="/business-os/web-landing-hero.png" alt={lang === 'es' ? 'Landing de reparación generada desde Airtable' : 'Repair landing generated from Airtable'} caption={lang === 'es' ? 'Landing 100% generada: precio, reseñas, specs (gsmarena-api) y SEO dinámico' : 'Landing 100% generated: price, reviews, specs (gsmarena-api) and dynamic SEO'} />
+                    <Photo1 editorId="content-repairs" src="/business-os/web-repairs-catalog.png" alt={lang === 'es' ? 'Catálogo de reparaciones iPhone 11' : 'iPhone 11 repair catalog'} caption={lang === 'es' ? 'Catálogo de averías por modelo — generado desde el ERP' : 'Repair catalog by model — generated from the ERP'} />
                   </>
                 )}
 
@@ -532,14 +377,6 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                         </div>
                       ))}
                     </div>
-                    {/* Airtable automations — messaging */}
-                    <figure className="rounded-lg overflow-hidden border border-border mt-3">
-                      <img src="/business-os/automatizaciones-mensajes.png" alt={lang === 'es' ? 'Automatizaciones de mensajes en Airtable: reseñas por tier, pedidos, campañas y WhatsApp' : 'Airtable messaging automations: tier-based reviews, orders, campaigns and WhatsApp'} className="w-full" loading="lazy" />
-                      <figcaption className="text-xs text-muted-foreground text-center py-2 px-3 bg-card">
-                        {lang === 'es' ? 'Automatizaciones de comunicación: solicitudes de reseña por tier, notificaciones de pedido, campañas y WhatsApp' : 'Communication automations: tier-based review requests, order notifications, campaigns and WhatsApp'}
-                      </figcaption>
-                    </figure>
-
                     {/* Google review cards */}
                     <div className="space-y-3 mt-3">
                       <div className="bg-background/50 rounded-lg border border-border p-4">
@@ -547,7 +384,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                           <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold text-white shrink-0">J</div>
                           <span className="text-sm font-medium text-foreground">Jose A. Fernández</span>
                           <div className="flex gap-0.5 ml-auto">
-                            {[1,2,3,4,5].map(s => <svg key={s} viewBox="0 0 20 20" className="w-3.5 h-3.5 text-yellow-400" fill="currentColor"><path d="M10 1l2.47 5.01L18 6.94l-4 3.89.94 5.51L10 13.88l-4.94 2.46.94-5.51-4-3.89 5.53-.93L10 1z"/></svg>)}
+                            {[1,2,3,4,5].map(s => <span key={s}>{STAR_SVG}</span>)}
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground italic mb-3">
@@ -565,7 +402,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                               : '"Thanks Jose Antonio! Glad the iPad repair met the deadline and that the WhatsApp chatbot made booking and tracking easy for you. Here whenever you need us."'}
                           </p>
                           <p className="text-[10px] text-primary/50 mt-1.5 flex items-center gap-1">
-                            <svg viewBox="0 0 24 24" className="w-3 h-3 text-[#18BFFF]" fill="currentColor"><path d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257zM23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z"/></svg>
+                            {AIRTABLE_SVG('w-3 h-3 text-[#18BFFF]')}
                             {lang === 'es' ? 'Contexto del CRM: iPad, cita gestionada vía Jacobo (chatbot WhatsApp), reparación express 1h' : 'CRM context: iPad, appointment via Jacobo (WhatsApp chatbot), 1h express repair'}
                           </p>
                         </div>
@@ -575,7 +412,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                           <div className="w-7 h-7 rounded-full bg-sky-600 flex items-center justify-center text-xs font-bold text-white shrink-0">C</div>
                           <span className="text-sm font-medium text-foreground">Cristian</span>
                           <div className="flex gap-0.5 ml-auto">
-                            {[1,2,3,4,5].map(s => <svg key={s} viewBox="0 0 20 20" className="w-3.5 h-3.5 text-yellow-400" fill="currentColor"><path d="M10 1l2.47 5.01L18 6.94l-4 3.89.94 5.51L10 13.88l-4.94 2.46.94-5.51-4-3.89 5.53-.93L10 1z"/></svg>)}
+                            {[1,2,3,4,5].map(s => <span key={s}>{STAR_SVG}</span>)}
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground italic mb-3">
@@ -593,7 +430,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                               : '"Thanks for updating your review, Cristian. Our system flagged your initial rating and we reviewed your history: iPhone glass with a finishing detail. We contacted you directly to fix it that same afternoon. For us, responding when something isn\'t perfect the first time is essential."'}
                           </p>
                           <p className="text-[10px] text-primary/50 mt-1.5 flex items-center gap-1">
-                            <svg viewBox="0 0 24 24" className="w-3 h-3 text-[#18BFFF]" fill="currentColor"><path d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257zM23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z"/></svg>
+                            {AIRTABLE_SVG('w-3 h-3 text-[#18BFFF]')}
                             {lang === 'es' ? 'Contexto del CRM: alerta reseña negativa, cristal iPhone, ticket reabierto, resolución mismo día' : 'CRM context: negative review alert, iPhone glass, ticket reopened, same-day resolution'}
                           </p>
                         </div>
@@ -601,8 +438,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                     </div>
                   </>
                 )}
-              </div>
-            </details>
+            </div>
           )})}
         </div>
         <CaseStudyCta
@@ -613,44 +449,26 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
         />
 
         {/* Cross-Cutting Capabilities */}
-        <AnchorHeading id="cross-cutting">{t.sections.crossCutting.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.crossCutting.body}</p>
-        <div className="space-y-4 mb-8">
+        <H2 id="cross-cutting">{t.sections.crossCutting.heading}</H2>
+        <Prose editorId="cross-body">{t.sections.crossCutting.body}</Prose>
+        <div className="space-y-8 mb-8">
           {t.sections.crossCutting.items.map((cap, idx) => {
-            const capIds = ['data-guardrails', 'event-notifications', 'ai-query-layer']
+            const capIds = ['data-guardrails', 'event-notifications', 'ai-query-layer', 'generative-ai']
+            const capIcons = [
+              <ShieldCheck className="w-5 h-5 text-primary" />,
+              <Bell className="w-5 h-5 text-primary" />,
+              <BrainCircuit className="w-5 h-5 text-primary" />,
+              <Sparkles className="w-5 h-5 text-primary" />,
+            ]
             return (
-            <details key={cap.name} id={capIds[idx]} open className="bg-card border border-border rounded-lg group scroll-mt-20">
-              <summary className="flex items-center gap-3 p-5 cursor-pointer select-none">
-                <span className="text-lg">{cap.icon}</span>
-                <div className="flex-1">
-                  <h3 className="font-display font-semibold text-foreground">{cap.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">{cap.summary}</p>
-                </div>
-                <span className="text-muted-foreground text-sm transition-transform group-open:rotate-180">&#9660;</span>
-              </summary>
-              <div className="px-5 pb-5 pt-0">
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  {cap.details.map((detail: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-primary mt-1.5 text-xs">&#9679;</span>
-                      {detail}
-                    </li>
-                  ))}
-                </ul>
+            <div key={cap.name} className="scroll-mt-20">
+              <H3 id={capIds[idx]} icon={capIcons[idx]}>{cap.name}</H3>
+              <Prose editorId={`cc-${idx}-summary`}>{cap.summary}</Prose>
+              <BulletList editorId={`cc-${idx}-details`} items={cap.details as readonly string[]} />
 
                 {/* CC0: Data Guardrails */}
                 {idx === 0 && (
-                  <figure className="rounded-lg overflow-hidden border border-border mt-4">
-                    <img
-                      src="/business-os/airtable-ot-terminal.webp"
-                      alt={lang === 'es' ? 'Interfaz Airtable — orden de trabajo con datos del terminal, modelo y foto' : 'Airtable interface — work order with device data, model and photo'}
-                      className="w-full h-auto"
-                      loading="lazy"
-                    />
-                    <figcaption className="px-3 py-2 text-xs text-muted-foreground bg-background/50">
-                      {lang === 'es' ? 'Formulario de entrada — cada campo validado automáticamente' : 'Intake form — every field automatically validated'}
-                    </figcaption>
-                  </figure>
+                  <Photo1 editorId="cc-guardrails" className="mt-4" src="/business-os/airtable-ot-terminal.webp" alt={lang === 'es' ? 'Interfaz Airtable — orden de trabajo con datos del terminal' : 'Airtable interface — work order with device data'} caption={lang === 'es' ? 'Formulario de entrada — cada campo validado automáticamente' : 'Intake form — every field automatically validated'} />
                 )}
 
                 {/* CC1: Event-Driven Notifications */}
@@ -670,9 +488,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                     <svg viewBox="0 0 24 24" className="w-6 h-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
-                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-[#18BFFF]" fill="currentColor">
-                      <path d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257zM23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z" />
-                    </svg>
+                    {AIRTABLE_SVG('w-10 h-10 text-[#18BFFF]')}
                   </div>
                 )}
 
@@ -685,36 +501,22 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                     <svg viewBox="0 0 24 24" className="w-6 h-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
-                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-[#18BFFF]" fill="currentColor">
-                      <path d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257zM23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z" />
-                    </svg>
+                    {AIRTABLE_SVG('w-10 h-10 text-[#18BFFF]')}
                   </div>
                 )}
 
                 {/* CC3: Generative AI Applied */}
                 {idx === 3 && (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <img
-                          src="/business-os/digital-signage-storefront.webp"
-                          alt={lang === 'es' ? 'Pantalla digital en escaparate — reparación de móviles' : 'Digital signage in storefront — mobile repair'}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </figure>
-                      <figure className="rounded-lg overflow-hidden border border-border">
-                        <img
-                          src="/business-os/digital-signage-storefront-2.webp"
-                          alt={lang === 'es' ? 'Pantalla digital en escaparate — Apple Watch' : 'Digital signage in storefront — Apple Watch'}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </figure>
-                      <figcaption className="sm:col-span-2 text-xs text-muted-foreground">
-                        {lang === 'es' ? 'Digital signage en escaparate — imágenes generadas con IA desde el catálogo de Airtable' : 'Storefront digital signage — AI-generated images from the Airtable catalog'}
-                      </figcaption>
-                    </div>
+                    <Photo2
+                      editorId="cc-signage"
+                      className="mt-4"
+                      items={[
+                        { src: '/business-os/digital-signage-storefront.webp', alt: lang === 'es' ? 'Pantalla digital en escaparate — reparación de móviles' : 'Digital signage in storefront — mobile repair' },
+                        { src: '/business-os/digital-signage-storefront-2.webp', alt: lang === 'es' ? 'Pantalla digital en escaparate — Apple Watch' : 'Digital signage in storefront — Apple Watch' },
+                      ]}
+                      caption={lang === 'es' ? 'Digital signage — imágenes generadas con IA desde el catálogo de Airtable' : 'Digital signage — AI-generated images from the Airtable catalog'}
+                    />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                       {[
                         {
@@ -747,164 +549,65 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                     </div>
                   </>
                 )}
-              </div>
-            </details>
+            </div>
           )})}
         </div>
 
         {/* Impact — 170h/Month Breakdown */}
-        <AnchorHeading id="impact">{t.sections.impact.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.impact.body}</p>
-        {/* Desktop table */}
-        <div className="hidden sm:block overflow-x-auto mb-4">
-          <table className="w-full text-sm border border-border rounded-lg overflow-hidden">
-            <thead>
-              <tr className="bg-card">
-                <th className="text-left p-3 text-foreground font-display font-semibold">{lang === 'es' ? 'Módulo' : 'Module'}</th>
-                <th className="text-left p-3 text-foreground font-display font-semibold">{lang === 'es' ? 'Antes' : 'Before'}</th>
-                <th className="text-left p-3 text-foreground font-display font-semibold">{lang === 'es' ? 'Después' : 'After'}</th>
-                <th className="text-left p-3 text-foreground font-display font-semibold">{lang === 'es' ? 'Ahorro/mes' : 'Monthly Savings'}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {t.sections.impact.savings.map((row) => (
-                <tr key={row.module} className="border-t border-border">
-                  <td className="p-3 text-muted-foreground">{row.module}</td>
-                  <td className="p-3 text-muted-foreground">{row.before}</td>
-                  <td className="p-3 text-primary font-medium">{row.after}</td>
-                  <td className="p-3 text-foreground font-semibold">{row.monthly}</td>
-                </tr>
-              ))}
-              <tr className="border-t-2 border-primary/30 bg-primary/5">
-                <td className="p-3 text-foreground font-display font-bold" colSpan={3}>Total</td>
-                <td className="p-3 text-primary font-display font-bold">{t.sections.impact.total}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        {/* Mobile cards */}
-        <div className="sm:hidden space-y-3 mb-4">
-          {t.sections.impact.savings.map((row) => (
-            <div key={row.module} className="bg-card border border-border rounded-lg p-4">
-              <p className="text-foreground font-medium text-sm mb-2">{row.module}</p>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground line-through">{row.before}</span>
-                <span className="text-muted-foreground">→</span>
-                <span className="text-primary font-medium">{row.after}</span>
-              </div>
-              <p className="text-xs text-foreground font-semibold mt-1">{lang === 'es' ? 'Ahorro' : 'Saved'}: {row.monthly}</p>
-            </div>
-          ))}
-          <div className="bg-primary/5 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
-            <span className="text-foreground font-display font-bold">Total</span>
-            <span className="text-primary font-display font-bold text-lg">{t.sections.impact.total}</span>
-          </div>
-        </div>
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-5 mb-8">
-          <p className="text-foreground font-medium">{t.sections.impact.punchline}</p>
-        </div>
+        <H2 id="impact">{t.sections.impact.heading}</H2>
+        <Prose editorId="impact-body">{t.sections.impact.body}</Prose>
+        <DataTable
+          editorId="impact-table"
+          headers={[
+            lang === 'es' ? 'Módulo' : 'Module',
+            lang === 'es' ? 'Antes' : 'Before',
+            lang === 'es' ? 'Después' : 'After',
+            lang === 'es' ? 'Ahorro/mes' : 'Monthly Savings',
+          ]}
+          rows={[
+            ...t.sections.impact.savings.map((row) => [row.module, row.before, row.after, row.monthly] as const),
+            ['Total', '', '', t.sections.impact.total],
+          ]}
+          highlightColumn={3}
+          className="mb-4"
+        />
+        <Callout editorId="impact-punchline" className="mb-8">{t.sections.impact.punchline}</Callout>
 
         {/* Before vs After */}
-        <AnchorHeading id="before-after">{t.sections.beforeAfter.heading}</AnchorHeading>
+        <H2 id="before-after">{t.sections.beforeAfter.heading}</H2>
 
         {/* Before photos gallery */}
-        <div className="mb-6">
-          <p className="text-sm text-muted-foreground mb-4 font-medium">
-            {lang === 'es' ? 'Así se gestionaba antes:' : 'How things were managed before:'}
-          </p>
+        <Prose editorId="before-label" className="text-sm font-medium">
+          {lang === 'es' ? 'Así se gestionaba antes:' : 'How things were managed before:'}
+        </Prose>
+        <Photo1 editorId="before-backlog" src="/business-os/before-terminals-backlog.webp" alt={lang === 'es' ? 'Terminales acumulados pendientes de recoger' : 'Devices piling up waiting for pickup'} caption={lang === 'es' ? 'Terminales acumulados pendientes de recoger' : 'Devices piling up waiting for pickup'} />
+        <Photo2
+          editorId="before-notes-pos"
+          items={[
+            { src: '/business-os/before-icloud-notes.webp', alt: lang === 'es' ? 'Notas de iCloud como sistema de pedidos' : 'iCloud Notes as order system' },
+            { src: '/business-os/before-checkout-pos-stock.webp', alt: lang === 'es' ? 'Checkout POS Manager — inventario manual' : 'Checkout POS Manager — manual inventory' },
+          ]}
+          caption={lang === 'es' ? 'Pedidos en Notas de iCloud / Stock en Checkout POS' : 'Orders in iCloud Notes / Stock in Checkout POS'}
+        />
+        <Photo1 editorId="before-chaos" src="/business-os/before-workshop-chaos.webp" alt={lang === 'es' ? 'Taller saturado' : 'Overwhelmed workshop'} caption={lang === 'es' ? 'Taller saturado — sin sistema de prioridades' : 'Overwhelmed workshop — no priority system'} />
+        <Photo2
+          editorId="before-sketch-founder"
+          items={[
+            { src: '/business-os/before-notebook-sketch.webp', alt: lang === 'es' ? 'Boceto en libreta' : 'Notebook sketch' },
+            { src: '/business-os/before-founder-overwhelmed.webp', alt: lang === 'es' ? 'Santiago en el taller' : 'Santiago in the workshop' },
+          ]}
+          caption={lang === 'es' ? 'Primer boceto de integración / De este caos nació un Product Builder' : 'First integration sketch / This chaos built a Product Builder'}
+          className="mb-6"
+        />
 
-          {/* Row 1 (full width): Terminals backlog */}
-          <figure className="bg-card border border-border rounded-lg overflow-hidden mb-3">
-            <img
-              src="/business-os/before-terminals-backlog.webp"
-              alt={lang === 'es' ? 'Mesa de atención acumulada de terminales pendientes de recoger' : 'Counter piled with devices waiting to be picked up'}
-              className="w-full h-auto"
-              loading="lazy"
-            />
-            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-              {lang === 'es' ? 'Terminales acumulados pendientes de recoger' : 'Devices piling up waiting for pickup'}
-            </figcaption>
-          </figure>
-
-          {/* Row 2: iCloud Notes + Checkout POS Stock */}
-          <div className="grid sm:grid-cols-2 gap-3 mb-3">
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="aspect-[3/4] overflow-hidden">
-                <img
-                  src="/business-os/before-icloud-notes.webp"
-                  alt={lang === 'es' ? 'Notas de iCloud como sistema de pedidos — Cliente esperando' : 'iCloud Notes as order system — Customer waiting'}
-                  className="w-full h-full object-cover object-top"
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Pedidos en Notas de iCloud' : 'Orders in iCloud Notes'}
-              </figcaption>
-            </figure>
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="aspect-[3/4] overflow-hidden">
-                <img
-                  src="/business-os/before-checkout-pos-stock.webp"
-                  alt={lang === 'es' ? 'Checkout POS Manager — inventario de piezas con stock manual' : 'Checkout POS Manager — parts inventory with manual stock'}
-                  className="w-full h-full object-cover object-top"
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Stock en Checkout POS' : 'Stock in Checkout POS'}
-              </figcaption>
-            </figure>
-          </div>
-
-          {/* Row 4 (full width): Workshop chaos — breaks the rhythm */}
-          <figure className="bg-card border border-border rounded-lg overflow-hidden mb-3">
-            <img
-              src="/business-os/before-workshop-chaos.webp"
-              alt={lang === 'es' ? 'Taller con terminales acumulados por reparar — caos de órdenes de trabajo' : 'Workshop with devices piling up for repair — work order chaos'}
-              className="w-full h-auto"
-              loading="lazy"
-            />
-            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-              {lang === 'es' ? 'Taller saturado — sin sistema de prioridades' : 'Overwhelmed workshop — no priority system'}
-            </figcaption>
-          </figure>
-
-          {/* Row 5: Notebook sketch + Founder overwhelmed */}
-          <div className="grid sm:grid-cols-2 gap-3">
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="aspect-[3/4] overflow-hidden">
-                <img
-                  src="/business-os/before-notebook-sketch.webp"
-                  alt={lang === 'es' ? 'Boceto en libreta — primer intento de diseño de integración antes de Airtable' : 'Notebook sketch — first integration design attempt before Airtable'}
-                  className="w-full h-full object-cover object-center"
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Primer boceto de integración — a mano' : 'First integration sketch — by hand'}
-              </figcaption>
-            </figure>
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="aspect-[3/4] overflow-hidden">
-                <img
-                  src="/business-os/before-founder-overwhelmed.webp"
-                  alt={lang === 'es' ? 'Santiago con gafas de protección y bata en el taller — reparando antes de sistematizar' : 'Santiago with safety glasses and lab coat in the workshop — repairing before systematizing'}
-                  className="w-full h-full object-cover object-top"
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'De este caos nació un Product Builder' : 'This chaos built a Product Builder'}
-              </figcaption>
-            </figure>
-          </div>
-
-        </div>
-
-        <div className="space-y-3 mb-8">
-          {t.sections.beforeAfter.items.map((item) => (
-            <div key={item.area} className="bg-card border border-border rounded-lg p-5">
-              <h3 className="font-display font-semibold text-foreground text-sm mb-3">{item.area}</h3>
+        <CardGrid
+          editorId="before-after-cards"
+          items={t.sections.beforeAfter.items as readonly { area: string; before: string; after: string }[]}
+          columns={1}
+          className="mb-8"
+          renderItem={(item) => (
+            <div key={item.area} className="bg-card border border-border rounded-lg p-5 hover:border-primary/20 transition-colors">
+              <p className="font-display font-semibold text-foreground text-sm mb-3">{item.area}</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
                   <span className="text-red-400 mt-0.5 text-xs shrink-0">&#10005;</span>
@@ -916,147 +619,61 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        />
 
         {/* After photos gallery */}
-        <div className="mb-8">
-          <p className="text-sm text-muted-foreground mb-4 font-medium">
-            {lang === 'es' ? 'Después — todo en un solo sistema:' : 'After — everything in one system:'}
-          </p>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <img
-                src="/business-os/after-store-interior.webp"
-                alt={lang === 'es' ? 'Interior de Santifer iRepair — lo que ve el cliente al entrar: mostrador con iMac y accesorios' : 'Santifer iRepair interior — what the customer sees: counter with iMac and accessories'}
-                className="w-full h-auto"
-                loading="lazy"
-              />
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Un iMac, un sistema — todo corre sobre Airtable' : 'One iMac, one system — everything runs on Airtable'}
-              </figcaption>
-            </figure>
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <img
-                src="/business-os/after-orders-organized.webp"
-                alt={lang === 'es' ? 'Órdenes de trabajo preparadas para mensajería — organizadas con Airtable durante el COVID' : 'Work orders ready for courier — organized with Airtable during COVID'}
-                className="w-full h-auto"
-                loading="lazy"
-              />
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Envíos COVID organizados con Airtable — cada bolsa es una OT' : 'COVID shipments organized with Airtable — each bag is a work order'}
-              </figcaption>
-            </figure>
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <img
-                src="/business-os/after-workshop-organized.webp"
-                alt={lang === 'es' ? 'Taller de reparación organizado — banco de trabajo limpio con cajoneras etiquetadas' : 'Organized repair workshop — clean workbench with labeled drawers'}
-                className="w-full h-auto"
-                loading="lazy"
-              />
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Taller organizado — cada pieza tiene su ubicación asignada' : 'Organized workshop — every part has its assigned location'}
-              </figcaption>
-            </figure>
-            {/* Estantería LED con accesorios — muestra el resultado visual del sistema de catálogo */}
-            <figure className="bg-card border border-border rounded-lg overflow-hidden">
-              <img
-                src="/business-os/after-accessories-display.webp"
-                alt={lang === 'es' ? 'Estantería LED con accesorios organizados — auriculares, cables, altavoces' : 'LED shelf with organized accessories — headphones, cables, speakers'}
-                className="w-full h-auto"
-                loading="lazy"
-              />
-              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                {lang === 'es' ? 'Cada accesorio con su ubicación, precio y stock sincronizado en Airtable' : 'Every accessory with its location, price, and stock synced in Airtable'}
-              </figcaption>
-            </figure>
-          </div>
-        </div>
+        <Prose editorId="after-label" className="text-sm font-medium">
+          {lang === 'es' ? 'Después — todo en un solo sistema:' : 'After — everything in one system:'}
+        </Prose>
+        <Photo2
+          editorId="after-store-orders"
+          items={[
+            { src: '/business-os/after-store-interior.webp', alt: lang === 'es' ? 'Interior de Santifer iRepair' : 'Santifer iRepair interior' },
+            { src: '/business-os/after-orders-organized.webp', alt: lang === 'es' ? 'Órdenes de trabajo organizadas' : 'Organized work orders' },
+          ]}
+          caption={lang === 'es' ? 'Un iMac, un sistema / Envíos COVID organizados con Airtable' : 'One iMac, one system / COVID shipments organized with Airtable'}
+        />
+        <Photo2
+          editorId="after-workshop-accessories"
+          items={[
+            { src: '/business-os/after-workshop-organized.webp', alt: lang === 'es' ? 'Taller organizado' : 'Organized workshop' },
+            { src: '/business-os/after-accessories-display.webp', alt: lang === 'es' ? 'Estantería LED con accesorios' : 'LED shelf with accessories' },
+          ]}
+          caption={lang === 'es' ? 'Taller organizado / Cada accesorio con ubicación y stock en Airtable' : 'Organized workshop / Every accessory with location and stock in Airtable'}
+          className="mb-8"
+        />
 
         {/* Architecture Decisions */}
-        <AnchorHeading id="decisions">{t.sections.decisions.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.decisions.body}</p>
-        <div className="space-y-4 mb-8">
-          {t.sections.decisions.items.map((item) => (
-            <div key={item.title} className="bg-card border border-border rounded-lg p-5">
-              <h3 className="font-display font-semibold text-foreground mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">{item.detail}</p>
-            </div>
-          ))}
-        </div>
+        <H2 id="decisions">{t.sections.decisions.heading}</H2>
+        <Prose editorId="decisions-body">{t.sections.decisions.body}</Prose>
+        <Accordion editorId="decisions-accordion" items={t.sections.decisions.items} />
 
         {/* Platform Evolution Timeline */}
-        <AnchorHeading id="platform-evolution">{t.sections.platformEvolution.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6 italic">{t.sections.platformEvolution.tagline}</p>
-        <div className="rounded-xl bg-primary/5 border border-primary/20 p-6 sm:p-8 mb-8">
-          <div className="relative">
-            {/* Vertical line */}
-            <div className="absolute left-[1.35rem] top-3 bottom-3 w-px bg-primary/20" aria-hidden="true" />
-            <div className="space-y-6">
-              {t.sections.platformEvolution.steps.map((step: { year: string; event: string; detail: string; punchline?: string }) => (
-                <div key={step.year} className="relative flex gap-4">
-                  {/* Year pill */}
-                  <div className="flex flex-col items-center shrink-0 z-10">
-                    <span className="inline-flex items-center justify-center w-11 h-7 rounded-full bg-primary/15 text-primary text-xs font-bold font-display tracking-tight">{step.year}</span>
-                  </div>
-                  {/* Content */}
-                  <div className="pt-0.5 min-w-0">
-                    <p className="font-display font-semibold text-foreground leading-snug">{step.event}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{step.detail}</p>
-                    {step.punchline && (() => {
-                      const parts = (step as { punchline: string }).punchline.split(/\{|\}/)
-                      return (
-                        <p className="text-sm font-medium text-primary mt-2 italic">
-                          {parts.map((part: string, i: number) =>
-                            i === 1 ? <span key={i} className="underline decoration-primary/40 underline-offset-2">{part}</span> : part
-                          )}
-                        </p>
-                      )
-                    })()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <H2 id="platform-evolution">{t.sections.platformEvolution.heading}</H2>
+        <Prose editorId="evolution-tagline" className="italic">{t.sections.platformEvolution.tagline}</Prose>
+        <Timeline
+          editorId="evolution-timeline"
+          items={t.sections.platformEvolution.steps as readonly { year: string; event: string; detail: string; punchline?: string }[]}
+        />
 
-        {/* Personal bridge — isolated with reveal-on-scroll */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
-          className="text-center py-8 mb-8 space-y-2"
-        >
-          {(t.sections.platformEvolution.bridge as readonly string[]).map((line: string, idx: number) => {
-            const parts = line.split(/\{|\}/)
-            return (
-              <p key={idx} className={`font-display text-lg sm:text-xl font-semibold text-foreground leading-snug${idx === 2 ? ' mt-6' : ''}`}>
-                {parts.length > 1
-                  ? parts.map((part: string, i: number) =>
-                      i === 1 ? <span key={i} className="text-primary">{part}</span> : part
-                    )
-                  : line}
-              </p>
-            )
-          })}
-        </motion.div>
+        <StoryBridge editorId="evolution-bridge" lines={t.sections.platformEvolution.bridge as readonly string[]} />
 
         {/* Lessons */}
-        <LessonsSection heading={t.sections.lessons.heading} items={t.sections.lessons.items} />
+        <H2 id="lessons">{t.sections.lessons.heading}</H2>
+        <StepList
+          editorId="lessons-steps"
+          items={t.sections.lessons.items.map((l: { title: string; detail: string }) => ({ label: l.title, detail: l.detail }))}
+        />
 
         {/* Replicability */}
-        <AnchorHeading id="replicability">{t.sections.replicability.heading}</AnchorHeading>
-        <p className="text-muted-foreground leading-relaxed mb-6">{t.sections.replicability.body}</p>
-        <div className="space-y-3 mb-4">
-          {t.sections.replicability.examples.map((ex: { domain: string; detail: string }) => (
-            <div key={ex.domain} className="bg-card border border-border rounded-lg p-5">
-              <h3 className="font-display font-semibold text-foreground mb-1">{ex.domain}</h3>
-              <p className="text-sm text-muted-foreground">{ex.detail}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-muted-foreground leading-relaxed mb-8">{t.sections.replicability.closing}</p>
+        <H2 id="replicability">{t.sections.replicability.heading}</H2>
+        <Prose editorId="replicability-body">{t.sections.replicability.body}</Prose>
+        <CardStack
+          editorId="replicability-cards"
+          items={t.sections.replicability.examples.map((ex: { domain: string; detail: string }) => ({ title: ex.domain, detail: ex.detail }))}
+        />
+        <Prose editorId="replicability-closing" className="mb-8">{t.sections.replicability.closing}</Prose>
 
         {/* CTA */}
         <CaseStudyCta
@@ -1074,6 +691,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
       </article>
 
       <ArticleFooter
+        editorId="footer"
         role={t.footer.role}
         bio={(t.footer as any).bio}
         fellowAt={(t.footer as any).fellowAt}

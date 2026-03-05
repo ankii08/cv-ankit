@@ -300,17 +300,36 @@ const metricsColsMap = {
   5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
 } as const
 
-export function MetricsGrid({ items, columns = 3, compact }: { items: readonly MetricCard[]; columns?: 3 | 4 | 5; compact?: boolean }) {
+export function MetricsGrid({ items, columns = 3, compact, editorId }: { items: readonly MetricCard[]; columns?: 3 | 4 | 5; compact?: boolean; editorId?: string }) {
   return (
-    <div className={`grid ${metricsColsMap[columns]} gap-4 mb-8`}>
-      {items.map((item) => (
-        <div key={item.label} className={`bg-card border border-border rounded-lg ${compact ? 'p-2.5 sm:p-3' : 'p-5'} text-center`}>
-          <p className={`${compact ? 'text-lg sm:text-xl' : 'text-3xl'} font-bold text-primary mb-1`}>{item.value}</p>
-          <p className={`font-medium text-foreground ${compact ? 'text-xs' : 'text-sm'}`}>{item.label}</p>
-          {item.detail && <p className="text-xs text-muted-foreground mt-1">{item.detail}</p>}
-        </div>
-      ))}
-    </div>
+    <EditorLabel name="MetricsGrid" id={editorId}>
+      <div className={`grid ${metricsColsMap[columns]} gap-4 mb-8`}>
+        {items.map((item) => (
+          <div key={item.label} className={`bg-card border border-border rounded-lg ${compact ? 'p-2.5 sm:p-3' : 'p-5'} text-center`}>
+            <p className={`${compact ? 'text-lg sm:text-xl' : 'text-3xl'} font-bold text-primary mb-1`}>{item.value}</p>
+            <p className={`font-medium text-foreground ${compact ? 'text-xs' : 'text-sm'}`}>{item.label}</p>
+            {item.detail && <p className="text-xs text-muted-foreground mt-1">{item.detail}</p>}
+          </div>
+        ))}
+      </div>
+    </EditorLabel>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Status Badge (proof of exit / production badge with pulse dot)
+// ---------------------------------------------------------------------------
+
+export function StatusBadge({ text, editorId }: { text: string; editorId?: string }) {
+  return (
+    <EditorLabel name="StatusBadge" id={editorId}>
+      <div className="flex items-center gap-2 mb-6 -mt-4">
+        <span className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          {text}
+        </span>
+      </div>
+    </EditorLabel>
   )
 }
 
