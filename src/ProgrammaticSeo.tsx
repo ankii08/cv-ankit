@@ -708,16 +708,6 @@ export default function ProgrammaticSeo({ lang = 'en' }: { lang?: Lang }) {
           lang={lang}
         />
 
-        <H3 id="ba-naming">{t.sections.repairedDevicesPipeline.naming.heading}</H3>
-        <Prose>{t.sections.repairedDevicesPipeline.naming.body}</Prose>
-        <Prose><code className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">{t.sections.repairedDevicesPipeline.naming.pattern}</code></Prose>
-        <CardStack
-          items={t.sections.repairedDevicesPipeline.naming.suffixes.map(s => ({
-            title: s.title,
-            detail: s.detail,
-          }))}
-        />
-
         <H3 id="ba-scale">{t.sections.repairedDevicesPipeline.scale.heading}</H3>
         <MetricsGrid items={t.sections.repairedDevicesPipeline.scale.metrics} columns={4} compact />
 
