@@ -140,6 +140,19 @@ function parseI18n(source: I18nSource): Chunk[] {
 
   const chunks: Chunk[] = []
 
+  // Build anchor lookup from registry sectionLabels (source of truth for HTML IDs)
+  const registryAnchors = new Set(Object.keys(article.sectionLabels.en))
+
+  // Helper: resolve the correct HTML anchor for a given i18n key
+  const resolveAnchor = (key: string): string => {
+    // Direct match in registry (most sections)
+    if (registryAnchors.has(key)) return `#${key}`
+    // camelCase → kebab-case fallback (e.g. timeSinks → time-sinks)
+    const kebab = key.replace(/([A-Z])/g, '-$1').replace(/(\d+)/g, '-$1').toLowerCase().replace(/^-/, '')
+    if (registryAnchors.has(kebab)) return `#${kebab}`
+    return ''
+  }
+
   // Extract header + intro as a single "intro" chunk
   const introText = [
     extractText(en.header),
@@ -165,44 +178,40 @@ function parseI18n(source: I18nSource): Chunk[] {
     }
   }
 
-  // Extract each section
+  // Extract each section (nested under en.sections)
   const sections = en.sections as Record<string, unknown> | undefined
   if (sections && typeof sections === 'object') {
     for (const [sectionKey, sectionValue] of Object.entries(sections)) {
       const text = extractText(sectionValue)
       if (!text.trim()) continue
 
-      // Map camelCase section key to kebab-case anchor
-      const anchor = sectionKey.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '')
-
       chunks.push({
         content: text.trim(),
         metadata: {
           ...baseMetadata,
           section_id: sectionKey,
-          section_anchor: `#${anchor}`,
+          section_anchor: resolveAnchor(sectionKey),
         },
       })
     }
   }
 
-  // Also process top-level keys that aren't sections, intro, or header
-  const topLevelContentKeys = ['previewCta', 'timeSinks', 'workflow1', 'workflow2']
-  for (const key of topLevelContentKeys) {
-    if (en[key]) {
-      const text = extractText(en[key])
-      if (text.trim()) {
-        const anchor = key.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '')
-        chunks.push({
-          content: text.trim(),
-          metadata: {
-            ...baseMetadata,
-            section_id: key,
-            section_anchor: `#${anchor}`,
-          },
-        })
-      }
-    }
+  // Extract top-level content keys (not under sections) that have registry anchors
+  const skipKeys = new Set(['en', 'es', 'header', 'intro', 'tldr', 'heroMetrics', 'sections'])
+  for (const [key, value] of Object.entries(en)) {
+    if (skipKeys.has(key)) continue
+    if (sections && key in sections) continue
+    const text = extractText(value)
+    if (!text.trim()) continue
+    const anchor = resolveAnchor(key)
+    chunks.push({
+      content: text.trim(),
+      metadata: {
+        ...baseMetadata,
+        section_id: key,
+        section_anchor: anchor,
+      },
+    })
   }
 
   return chunks
@@ -351,6 +360,18 @@ function main() {
 
     const chunks = parseI18n(source)
     if (chunks.length === 0) continue
+
+    // Validate: every non-empty section_anchor must exist in registry sectionLabels
+    const validAnchors = new Set(Object.keys(article.sectionLabels.en))
+    for (const chunk of chunks) {
+      const anchor = chunk.metadata.section_anchor
+      if (anchor) {
+        const anchorId = anchor.replace(/^#/, '')
+        if (!validAnchors.has(anchorId)) {
+          console.warn(`  ⚠ ${source.articleId}: anchor "${anchor}" (section: ${chunk.metadata.section_id}) not in registry — badge will link to broken hash`)
+        }
+      }
+    }
 
     const outPath = resolve(CHUNKS_DIR, `${source.articleId}.json`)
     writeFileSync(outPath, JSON.stringify(chunks, null, 2))

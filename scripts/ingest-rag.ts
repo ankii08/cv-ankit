@@ -131,7 +131,7 @@ async function saveHashes(hashes: Record<string, string>, supabase: ReturnType<t
 }
 
 function hashContent(chunks: Chunk[]): string {
-  const content = JSON.stringify(chunks.map(c => c.content))
+  const content = JSON.stringify(chunks.map(c => ({ content: c.content, metadata: c.metadata })))
   return createHash('sha256').update(content).digest('hex').slice(0, 16)
 }
 
