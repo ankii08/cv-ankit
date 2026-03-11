@@ -555,10 +555,10 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                                 onClick={() => {
                                   if (isCurrentPage && source.section_anchor) {
                                     const el = document.querySelector(source.section_anchor);
-                                    el?.scrollIntoView({ behavior: 'smooth' });
+                                    el?.scrollIntoView({ behavior: 'instant' });
                                   } else if (targetPath) {
-                                    navigate(targetPath + (source.section_anchor || ''));
                                     setIsOpen(false);
+                                    navigate(targetPath + (source.section_anchor || ''));
                                   }
                                 }}
                                 className={`flex items-center gap-1.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${

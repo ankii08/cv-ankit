@@ -1202,14 +1202,18 @@ function App() {
   const hydrated = useHydrated()
 
   // Scroll to hash anchor on load/navigation
+  // Two-pass: instant jump early, then corrective pass after layout settles
   useEffect(() => {
     if (location.hash) {
       const el = document.querySelector(location.hash)
-      if (el) {
-        setTimeout(() => {
-          el.scrollIntoView({ behavior: 'smooth' })
-        }, 100)
-      }
+      if (!el) return
+      const t1 = setTimeout(() => {
+        el.scrollIntoView({ behavior: 'instant' })
+      }, 50)
+      const t2 = setTimeout(() => {
+        el.scrollIntoView({ behavior: 'instant' })
+      }, 600)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
     }
   }, [location.hash])
 

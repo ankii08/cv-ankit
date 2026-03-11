@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import {
   ChevronRight, Wrench, Package, Globe, Users, ShieldCheck, Bell, BrainCircuit, Sparkles,
   ClipboardList, Contact, Calculator, Cpu, ShoppingBag, Code, MessageSquareHeart, Star, Search, MapPin, Film, Bot,
@@ -110,23 +109,7 @@ export default function BusinessOS({ lang = 'en' }: { lang?: Lang }) {
     xDefaultSlug: 'business-os-para-airtable',
   })
 
-  // Scroll to hash anchor (e.g. #repair-lifecycle from home page links)
-  // Two-pass: instant jump early, then corrective smooth scroll after images settle
-  useEffect(() => {
-    const hash = window.location.hash
-    if (!hash) return
-    const el = document.querySelector(hash)
-    if (!el) return
-    // First pass: instant jump as soon as element exists
-    const t1 = setTimeout(() => {
-      el.scrollIntoView({ behavior: 'instant' })
-    }, 50)
-    // Second pass: correct for layout shift from lazy images
-    const t2 = setTimeout(() => {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }, 600)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [])
+
 
   return (
     <ArticleLayout lang={lang}>
