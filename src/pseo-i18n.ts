@@ -104,8 +104,8 @@ export const pseoContent = {
       theNumbers: {
         heading: 'Los Números',
         metrics: [
-          { value: '2,26M', label: 'Impresiones', detail: 'Total acumulado en Google Search Console' },
-          { value: '19K+', label: 'Clicks orgánicos', detail: 'Tráfico real desde búsqueda orgánica' },
+          { value: '2,26M', label: 'Impresiones', detail: 'Total acumulado (medido en Google Search Console)' },
+          { value: '19K+', label: 'Clicks orgánicos', detail: 'Tráfico real desde búsqueda orgánica (medido en Google Search Console)' },
           { value: '4.730', label: 'Páginas con tráfico', detail: 'De miles generadas, 4.084 indexables en sitemap, 4.730 recibieron impresiones' },
           { value: '10,8x', label: 'Crecimiento', detail: 'De 202 a 2.193 clicks/mes en 11 meses' },
           { value: '80%', label: 'Clicks desde pSEO', detail: 'El tráfico orgánico del sitio viene de páginas programáticas' },
@@ -832,7 +832,7 @@ await pipeline
       },
       crawlBudget: {
         heading: 'Optimización del Crawl Budget',
-        body: 'Con 4.700+ páginas, gestionar el crawl budget es crítico. Google no debería perder tiempo rastreando páginas que no van a posicionar. Las 700+ reglas de robots.txt se suman a las 1.009 redirecciones heredadas de la migración.',
+        body: 'Con 4.700+ páginas, gestionar el crawl budget es crítico — según la documentación de Google Search Central sobre crawl budget. Google no debería perder tiempo rastreando páginas que no van a posicionar. Las 700+ reglas de robots.txt se suman a las 1.009 redirecciones heredadas de la migración.',
         strategies: [
           {
             title: 'Noindex selectivo con DataForSEO',
@@ -1126,8 +1126,8 @@ return records.map(r => ({
       theNumbers: {
         heading: 'The Numbers',
         metrics: [
-          { value: '2.26M', label: 'Impressions', detail: 'Total in Google Search Console' },
-          { value: '19K+', label: 'Organic clicks', detail: 'Real traffic from organic search' },
+          { value: '2.26M', label: 'Impressions', detail: 'Total (measured in Google Search Console)' },
+          { value: '19K+', label: 'Organic clicks', detail: 'Real traffic from organic search (measured in Google Search Console)' },
           { value: '4,730', label: 'Pages with traffic', detail: 'Out of thousands generated, 4,084 indexable in sitemap, 4,730 picked up impressions' },
           { value: '10.8x', label: 'Monthly growth', detail: 'From 202 to 2,193 clicks/month in 11 months' },
           { value: '80%', label: 'Clicks from pSEO', detail: 'Organic traffic comes from programmatic pages' },
@@ -1854,7 +1854,7 @@ await pipeline
       },
       crawlBudget: {
         heading: 'Crawl Budget Optimization',
-        body: 'With 4,700+ pages, managing crawl budget is critical. Google shouldn\'t waste time crawling pages that won\'t rank. The 700+ robots.txt rules add to the 1,009 redirects inherited from the migration.',
+        body: 'With 4,700+ pages, managing crawl budget is critical — per Google Search Central\'s crawl budget documentation. Google shouldn\'t waste time crawling pages that won\'t rank. The 700+ robots.txt rules add to the 1,009 redirects inherited from the migration.',
         strategies: [
           {
             title: 'Selective noindex with DataForSEO',

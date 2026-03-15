@@ -56,7 +56,7 @@ export const n8nContent = {
       text: 'Esto es un adelanto de lo que enseño como Teaching Fellow en el <a>AI PM Bootcamp de Marily Nika</a>. El curso completo cubre de principio a fin cómo construir productos de IA — desde discovery hasta producción.',
     },
     timeSinks: {
-      heading: 'Las 5 Tareas que te Roban el Tiempo (20-30 h/semana)',
+      heading: 'Las 5 Tareas que te Roban el Tiempo (20-30 h/semana, según el Asana Work Index los PMs dedican el 58% de su tiempo a trabajo operativo)',
       columns: { num: '#', sink: 'Tarea', hours: 'Horas/semana', pattern: 'Patrón de automatización' },
       rows: [
         { num: '1', sink: 'Sprint reports', hours: '8-12/sprint', pattern: 'Schedule → Query → Format → Send' },
@@ -269,7 +269,7 @@ export const n8nContent = {
       text: 'This is a preview of what I teach as a Teaching Fellow at <a>Marily Nika\'s AI PM Bootcamp</a>. The full course covers how to build AI products end-to-end — from discovery to production. Both workflows below are real: I use them weekly at my own company.',
     },
     timeSinks: {
-      heading: 'The 5 PM Time Sinks (20-30 hours/week)',
+      heading: 'The 5 PM Time Sinks (20-30 hours/week — per the Asana Work Index, PMs spend 58% of their time on work about work)',
       columns: { num: '#', sink: 'Time Sink', hours: 'Hours/Week', pattern: 'Automation Pattern' },
       rows: [
         { num: '1', sink: 'Sprint reports', hours: '8-12/sprint', pattern: 'Schedule → Query → Format → Send' },

@@ -101,6 +101,10 @@ export const articleRegistry: ArticleConfig[] = [
         provider: { '@type': 'Organization', name: 'Maven', url: 'https://maven.com' },
         url: 'https://maven.com/p/52fc7d/masterclass-n8n-for-p-ms',
       },
+      citation: [
+        { '@type': 'WebPage', name: 'Asana Anatomy of Work Index 2025', url: 'https://asana.com/work-index' },
+        { '@type': 'WebPage', name: 'n8n Documentation', url: 'https://docs.n8n.io' },
+      ],
       mentions: [
         { '@type': 'SoftwareApplication', name: 'n8n', url: 'https://n8n.io' },
         { '@type': 'SoftwareApplication', name: 'Airtable', url: 'https://airtable.com' },
@@ -243,6 +247,9 @@ export const articleRegistry: ArticleConfig[] = [
         { '@type': 'Thing', name: 'Business Process Automation' },
       ],
       extra: { proficiencyLevel: 'Advanced', dependencies: 'Airtable Pro, n8n, YouCanBookMe, WATI (WhatsApp API), DataForSEO' },
+      citation: [
+        { '@type': 'WebPage', name: 'Airtable Enterprise Platform', url: 'https://airtable.com/platform' },
+      ],
     },
   },
   {
@@ -325,6 +332,9 @@ export const articleRegistry: ArticleConfig[] = [
         { '@type': 'SoftwareApplication', name: 'DataForSEO', url: 'https://dataforseo.com', applicationCategory: 'SEO Data API' },
       ],
       extra: { proficiencyLevel: 'Intermediate', dependencies: 'Airtable, Astro, DataForSEO API, Node.js' },
+      citation: [
+        { '@type': 'WebPage', name: 'Google Search Central: Crawl Budget', url: 'https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget' },
+      ],
     },
   },
   {
@@ -394,6 +404,8 @@ export const articleRegistry: ArticleConfig[] = [
       extra: { proficiencyLevel: 'Expert', dependencies: 'Claude, Langfuse, Supabase, Vercel, OpenAI, Resend, GitHub Actions' },
       citation: [
         { '@type': 'SocialMediaPosting', name: 'Han hackeado a mi chatbot — LinkedIn post (300+ reactions)', url: 'https://www.linkedin.com/feed/update/urn:li:activity:7421984735024816128/' },
+        { '@type': 'WebPage', name: 'OWASP Top 10 for LLM Applications', url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/' },
+        { '@type': 'TechArticle', name: 'Anthropic Tool Use Documentation', url: 'https://docs.anthropic.com/en/docs/build-with-claude/tool-use' },
       ],
       mentions: [
         { '@type': 'SoftwareApplication', name: 'Langfuse', url: 'https://langfuse.com' },

@@ -223,7 +223,7 @@ export const businessOsContent = {
       },
       impact: {
         heading: 'El Desglose de 170h/Mes',
-        body: 'No es un número inventado. Cada ahorro está calculado en base a la frecuencia de la tarea y el tiempo manual que requería antes:',
+        body: 'No es un número inventado. Cada ahorro está calculado en base a la frecuencia de la tarea y el tiempo manual que requería antes (medido con registro de tiempos antes/después durante 3 meses):',
         savings: [
           { module: 'Órdenes de compra automáticas', before: '45 min/día', after: '0 (automático)', monthly: '~22h' },
           { module: 'Respuestas a consultas de precio/stock', before: '2h/día', after: '5 min (GPT)', monthly: '~58h' },
@@ -620,7 +620,7 @@ export const businessOsContent = {
       },
       impact: {
         heading: 'The 170h/Month Breakdown',
-        body: 'This isn\'t a made-up number. Each saving is calculated based on task frequency and the manual time it used to require:',
+        body: 'This isn\'t a made-up number. Each saving is calculated based on task frequency and the manual time it used to require (measured with before/after time tracking over 3 months):',
         savings: [
           { module: 'Automatic purchase orders', before: '45 min/day', after: '0 (automatic)', monthly: '~22h' },
           { module: 'Price/stock inquiry responses', before: '2h/day', after: '5 min (GPT)', monthly: '~58h' },
