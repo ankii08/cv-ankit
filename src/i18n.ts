@@ -15,9 +15,10 @@ export const seo = {
 
 export const translations = {
   es: {
-    greeting: 'AI Product Manager que construye',
+    greeting: 'que construye sistemas',
+    greetingRoles: ['AI Product Manager', 'AI Solutions Architect', 'Forward Deployed Engineer'],
     email: 'hola@santifer.io',
-    role: 'sistemas LLMOps que se curan solos.',
+    role: 'LLMOps que se curan solos.',
     story: {
       context: '+15 años construyendo+ todo desde cero.',
       reflections: ['Funciona. Sin mí.', '...¿y ahora qué?'],
@@ -749,7 +750,8 @@ export const translations = {
     },
   },
   en: {
-    greeting: 'AI Product Manager who builds',
+    greeting: 'who builds',
+    greetingRoles: ['AI Product Manager', 'AI Solutions Architect', 'Forward Deployed Engineer'],
     email: 'hi@santifer.io',
     role: 'self-healing LLMOps systems.',
     story: {

@@ -43,6 +43,80 @@ function useInView(threshold = 0.1) {
   return { ref: setRef, isInView }
 }
 
+const HEAL_PARTICLES = [
+  { char: '+', left: '10%', delay: '0s', dur: '2.8s', size: '24px' },
+  { char: '·', left: '30%', delay: '0.6s', dur: '2.2s', size: '20px' },
+  { char: '✦', left: '55%', delay: '1.2s', dur: '3s', size: '18px' },
+  { char: '0', left: '75%', delay: '0.3s', dur: '2.5s', size: '22px' },
+  { char: '+', left: '90%', delay: '1.8s', dur: '2.6s', size: '20px' },
+  { char: '1', left: '20%', delay: '2.1s', dur: '2.4s', size: '22px' },
+  { char: '·', left: '65%', delay: '0.9s', dur: '3.2s', size: '18px' },
+  { char: '✦', left: '45%', delay: '1.5s', dur: '2.7s', size: '20px' },
+]
+
+function BeamPill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="beam-pill relative inline-block pl-0 pr-0">
+      <span className="relative z-10">{children}</span>
+      {HEAL_PARTICLES.map((p, i) => (
+        <span
+          key={i}
+          className="absolute pointer-events-none select-none"
+          style={{
+            left: p.left,
+            bottom: '50%',
+            fontSize: p.size,
+            color: '#4ade80',
+            opacity: 0,
+            animation: `heal-float ${p.dur} ease-out ${p.delay} infinite`,
+          }}
+          aria-hidden="true"
+        >
+          {p.char}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function useTypewriterRotation(roles: readonly string[], { typeSpeed = 80, deleteSpeed = 60, pauseAfterType = 2000, pauseAfterDelete = 300 } = {}) {
+  const [roleIndex, setRoleIndex] = useState(0)
+  const [displayText, setDisplayText] = useState(roles[0])
+  const [isDeleting, setIsDeleting] = useState(false)
+  const currentRole = roles[roleIndex]
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>
+
+    if (!isDeleting && displayText === currentRole) {
+      // Finished typing — pause then start deleting
+      timeout = setTimeout(() => setIsDeleting(true), pauseAfterType)
+    } else if (isDeleting && displayText === '') {
+      // Finished deleting — move to next role and start typing
+      timeout = setTimeout(() => {
+        setRoleIndex(i => (i + 1) % roles.length)
+        setIsDeleting(false)
+      }, pauseAfterDelete)
+    } else if (isDeleting) {
+      // Deleting word by word (ctrl+backspace style)
+      timeout = setTimeout(() => {
+        const words = displayText.trimEnd().split(' ')
+        words.pop()
+        setDisplayText(words.length > 0 ? words.join(' ') + ' ' : '')
+      }, deleteSpeed)
+    } else {
+      // Typing character by character
+      timeout = setTimeout(() => {
+        setDisplayText(currentRole.slice(0, displayText.length + 1))
+      }, typeSpeed)
+    }
+
+    return () => clearTimeout(timeout)
+  }, [displayText, isDeleting, currentRole, roles, typeSpeed, deleteSpeed, pauseAfterType, pauseAfterDelete])
+
+  return { displayText, roleIndex, isDeleting }
+}
+
 const HOME_TOC_SECTIONS = [
   { id: 'experience', es: 'Experiencia', en: 'Experience' },
   { id: 'projects', es: 'Proyectos', en: 'Projects' },
@@ -1201,6 +1275,7 @@ function App() {
   const lang: Lang = location.pathname === '/en' ? 'en' : 'es'
   const t = translations[lang]
   const hydrated = useHydrated()
+  const { displayText: roleText, roleIndex } = useTypewriterRotation(t.greetingRoles)
 
 
   // SEO: Dynamic meta tags based on language
@@ -1265,14 +1340,73 @@ function App() {
               <p className="text-lg text-muted-foreground mb-2">
                 {lang === 'es' ? 'Hola, soy' : "Hi, I'm"} <span className="text-gradient-theme font-semibold">@santifer</span>,
               </p>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-                {t.greeting} {t.role}
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight">
+                <span className="text-gradient-theme">{hydrated ? roleText : t.greetingRoles[0]}</span>
+                {hydrated && <span className="inline-block w-[3px] h-[0.85em] bg-primary ml-1 rounded-sm translate-y-[2px]" style={{ animation: 'blink 1s step-end infinite' }} />}
+                <style>{`
+                  @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
+                  @keyframes heal-float {
+                    0% { opacity: 0; transform: translateY(0) scale(0.6); }
+                    12% { opacity: 0.25; }
+                    40% { opacity: 0.15; }
+                    100% { opacity: 0; transform: translateY(-65px) scale(0.2); }
+                  }
+                  @property --beam-angle {
+                    syntax: '<angle>';
+                    inherits: false;
+                    initial-value: 0deg;
+                  }
+                  @keyframes beam-spin {
+                    0% { --beam-angle: 0deg; }
+                    100% { --beam-angle: 360deg; }
+                  }
+                  .beam-pill::before {
+                    content: '';
+                    position: absolute;
+                    inset: 2px -7px -5px -7px;
+                    border-radius: 9999px;
+                    padding: 2px;
+                    background: conic-gradient(
+                      from var(--beam-angle),
+                      transparent 0%,
+                      transparent 82%,
+                      rgba(74, 222, 128, 0.05) 86%,
+                      rgba(74, 222, 128, 0.15) 89%,
+                      rgba(74, 222, 128, 0.35) 92%,
+                      rgba(74, 222, 128, 0.6) 95%,
+                      rgba(74, 222, 128, 0.9) 98%,
+                      #4ade80 100%,
+                      transparent 100%
+                    );
+                    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                    -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+                    animation: beam-spin 2s linear infinite;
+                  }
+                `}</style>
+                <br />
+                {t.greeting}
+                <br />
+                {lang === 'es' ? (
+                  <>LLMOps que se <BeamPill>curan solos.</BeamPill></>
+                ) : (
+                  <><BeamPill>self-healing</BeamPill> LLMOps systems.</>
+                )}
               </h1>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                <span className="px-4 py-2 rounded-full border border-primary/30 bg-primary/5 text-sm font-medium text-primary">AI Product Manager</span>
-                <span className="px-4 py-2 rounded-full border border-primary/30 bg-primary/5 text-sm font-medium text-primary">AI Solutions Architect</span>
-                <span className="px-4 py-2 rounded-full border border-primary/30 bg-primary/5 text-sm font-medium text-primary">Forward Deployed Engineer</span>
+                {t.greetingRoles.map((role, i) => (
+                  <span
+                    key={role}
+                    className={`px-4 py-2 rounded-full border text-sm font-medium transition-all duration-300 ${
+                      hydrated && i === roleIndex
+                        ? 'border-primary bg-primary/15 text-primary scale-105'
+                        : 'border-primary/30 bg-primary/5 text-primary/60'
+                    }`}
+                  >
+                    {role}
+                  </span>
+                ))}
               </div>
             </motion.div>
           </div>
