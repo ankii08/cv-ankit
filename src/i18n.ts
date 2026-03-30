@@ -488,7 +488,7 @@ export const translations = {
     },
     redditPost: {
       hook: 'Automaticé mi búsqueda de empleo con agentes IA — 516 evaluaciones, 66 aplicaciones, zero screening manual.',
-      upvotes: '525',
+      upvotes: '532',
       comments: '301',
       subreddit: 'r/SideProject',
       cta: 'Leer en Reddit',
@@ -1229,7 +1229,7 @@ export const translations = {
     },
     redditPost: {
       hook: 'I automated my job search with AI agents — 516 evaluations, 66 applications, zero manual screening.',
-      upvotes: '525',
+      upvotes: '532',
       comments: '301',
       subreddit: 'r/SideProject',
       cta: 'Read on Reddit',

@@ -23,6 +23,8 @@ import App from '../src/App.tsx';
 import GlobalNav from '../src/GlobalNav.tsx';
 import { articleRegistry, type ArticleConfig } from '../src/articles/registry.ts';
 import { buildArticleJsonLd } from '../src/articles/json-ld.ts';
+import AboutPage from '../src/AboutPage.tsx';
+import { aboutContent } from '../src/about-i18n.ts';
 import { seo } from '../src/i18n.ts';
 import { n8nContent } from '../src/n8n-i18n.ts';
 import { jacoboContent } from '../src/jacobo-i18n.ts';
@@ -148,6 +150,149 @@ let enPage = indexHtml
   .replace(/<meta name="twitter:url" content="[^"]*" \/>/, '<meta name="twitter:url" content="https://santifer.io/en" />')
   .replace(/<meta name="twitter:title" content="[^"]*" \/>/, `<meta name="twitter:title" content="${esc(enSeo.title)}" />`)
   .replace(/<meta name="twitter:description" content="[^"]*" \/>/, `<meta name="twitter:description" content="${esc(enSeo.description)}" />`);
+
+// ---------------------------------------------------------------------------
+// About / Entity Home — ES (/sobre-mi) + EN (/about)
+// ---------------------------------------------------------------------------
+
+const aboutJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  dateModified: '2026-03-27',
+  mainEntity: {
+    '@type': 'Person',
+    '@id': 'https://santifer.io/#person',
+    name: 'Santiago Fernández de Valderrama Aparicio',
+    alternateName: ['Santiago Fernández de Valderrama', 'santifer', 'Santi'],
+    url: 'https://santifer.io',
+    image: 'https://santifer.io/foto-avatar.png',
+    email: 'hola@santifer.io',
+    jobTitle: ['AI Product Manager', 'Solutions Architect (No/Low-Code & AI)', 'AI Forward Deployed Engineer'],
+    knowsAbout: [
+      { '@type': 'Thing', name: 'Artificial Intelligence', url: 'https://en.wikipedia.org/wiki/Artificial_intelligence' },
+      { '@type': 'Thing', name: 'Machine Learning', url: 'https://en.wikipedia.org/wiki/Machine_learning' },
+      { '@type': 'Thing', name: 'Multi-Agent System', url: 'https://en.wikipedia.org/wiki/Multi-agent_system' },
+      { '@type': 'Thing', name: 'Retrieval-Augmented Generation', url: 'https://en.wikipedia.org/wiki/Retrieval-augmented_generation' },
+      { '@type': 'Thing', name: 'No-code development platform', url: 'https://en.wikipedia.org/wiki/No-code_development_platform' },
+      { '@type': 'Thing', name: 'Prompt Engineering' },
+      { '@type': 'SoftwareApplication', name: 'Airtable', url: 'https://airtable.com' },
+      { '@type': 'SoftwareApplication', name: 'n8n', url: 'https://n8n.io' },
+      { '@type': 'SoftwareApplication', name: 'Claude API', url: 'https://docs.anthropic.com' },
+    ],
+    hasCredential: [
+      { '@type': 'EducationalOccupationalCredential', name: 'Introduction to Model Context Protocol', recognizedBy: { '@type': 'Organization', name: 'Anthropic' }, url: 'https://verify.skilljar.com/c/4pxam3irsioq' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Claude Code in Action', recognizedBy: { '@type': 'Organization', name: 'Anthropic' }, url: 'https://verify.skilljar.com/c/eijx7hwc2x89' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Advanced MCP Topics', recognizedBy: { '@type': 'Organization', name: 'Anthropic' }, url: 'https://verify.skilljar.com/c/eiovmq5qaeyd' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Building with the Claude API', recognizedBy: { '@type': 'Organization', name: 'Anthropic' }, url: 'https://verify.skilljar.com/c/s4bu5znz53vm' },
+      { '@type': 'EducationalOccupationalCredential', name: 'AI Fluency: Framework & Foundations', recognizedBy: { '@type': 'Organization', name: 'Anthropic' }, url: 'https://verify.skilljar.com/c/d6rhfox7ktq6' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Teaching AI Fluency', recognizedBy: { '@type': 'Organization', name: 'Anthropic' }, url: 'https://verify.skilljar.com/c/x3bzuoz99rq5' },
+      { '@type': 'EducationalOccupationalCredential', name: 'AI App Builder Certification', recognizedBy: { '@type': 'Organization', name: 'Airtable' }, url: 'https://verify.skilljar.com/c/gwg7ak9qgf7r' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Airtable Builder Certification', recognizedBy: { '@type': 'Organization', name: 'Airtable' }, url: 'https://verify.skilljar.com/c/id2e4zgqtasv' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Airtable Admin Certification', recognizedBy: { '@type': 'Organization', name: 'Airtable' }, url: 'https://verify.skilljar.com/c/u3r8kgn5wdit' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Make Advanced', recognizedBy: { '@type': 'Organization', name: 'Make Academy' }, url: 'https://www.credly.com/badges/d27b8174-ef20-46bd-9d81-ee05e9c349e8' },
+    ],
+    alumniOf: [
+      { '@type': 'EducationalOrganization', name: 'Maven - AI Product Management Bootcamp' },
+      { '@type': 'EducationalOrganization', name: 'BIGSEO - Master en Inteligencia Artificial' },
+      { '@type': 'EducationalOrganization', name: 'ETSI - Universidad de Sevilla' },
+    ],
+    founder: {
+      '@type': 'Organization',
+      name: 'Santifer iRepair',
+      url: 'https://santiferirepair.es',
+      foundingDate: '2009',
+    },
+    sameAs: [
+      'https://www.linkedin.com/in/santifer',
+      'https://github.com/santifer',
+      'https://x.com/santifer',
+      'https://dev.to/santifer',
+      'https://santifer.substack.com',
+      'https://contentdigest.santifer.io',
+      'https://www.youtube.com/@santifer_io',
+      'https://stackoverflow.com/users/32541743',
+      'https://orcid.org/0009-0006-2192-7210',
+      'https://www.crunchbase.com/person/santiago-fernandez-de-valderrama',
+      'https://huggingface.co/santifer',
+      'https://www.wikidata.org/wiki/Q138710224',
+    ],
+    subjectOf: {
+      '@type': 'NewsArticle',
+      headline: 'Salir de compras: Una solución exprés para el teléfono',
+      publisher: { '@type': 'NewsMediaOrganization', name: 'Diario de Sevilla' },
+      datePublished: '2014-06-19',
+      url: 'https://www.diariodesevilla.es/vivirensevilla/Salir-compras-solucion-expres-telefono_0_817718799.html',
+    },
+    address: { '@type': 'PostalAddress', addressLocality: 'Sevilla', addressCountry: 'ES' },
+  },
+};
+
+const aboutJsonLdScript = `<script type="application/ld+json">\n${JSON.stringify(aboutJsonLd, null, 2)}\n</script>`;
+
+interface AboutPageData {
+  slug: string;
+  html: string;
+}
+
+const aboutPages: AboutPageData[] = [];
+
+for (const lang of ['es', 'en'] as const) {
+  const t = aboutContent[lang];
+  const slug = t.slug;
+  const altSlug = t.altSlug;
+  const url = `https://santifer.io/${slug}`;
+  const altUrl = `https://santifer.io/${altSlug}`;
+  const altLang = lang === 'es' ? 'en' : 'es';
+  const ogLocale = lang === 'es' ? 'es_ES' : 'en_US';
+  const ogLocaleAlt = lang === 'es' ? 'en_US' : 'es_ES';
+
+  let renderedHtml: string;
+  try {
+    renderedHtml = stripReactSSRTags(renderToString(
+      <StaticRouter location={`/${slug}`}>
+        <GlobalNav />
+        <div>
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path={`/${slug}`} element={<AboutPage lang={lang} />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </StaticRouter>
+    ));
+  } catch (err) {
+    console.error(`[prerender] SSR failed for ${slug}, falling back to empty root:`, err);
+    renderedHtml = '';
+  }
+
+  const hreflangLinks = `<link rel="alternate" hreflang="${lang}" href="${url}" /><link rel="alternate" hreflang="${altLang}" href="${altUrl}" /><link rel="alternate" hreflang="x-default" href="https://santifer.io/sobre-mi" />`;
+
+  let result = indexHtml
+    .replace('<div id="root"></div>', `<div id="root">${renderedHtml}</div>`)
+    .replace('<html lang="es" class="dark">', `<html lang="${lang}" class="dark">`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(t.seo.title)}</title>`)
+    .replace(/<meta name="title" content="[^"]*" \/>/, `<meta name="title" content="${esc(t.seo.title)}" />`)
+    .replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${esc(t.seo.description)}" />`)
+    .replace(/<link rel="alternate" hreflang="[^"]*" href="[^"]*" \/>\s*/g, '')
+    .replace(/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${url}" />${hreflangLinks}`)
+    .replace(/<meta property="og:type" content="[^"]*" \/>/, '<meta property="og:type" content="profile" />')
+    .replace(/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${url}" />`)
+    .replace(/<meta property="og:title" content="[^"]*" \/>/, `<meta property="og:title" content="${esc(t.seo.title)}" />`)
+    .replace(/<meta property="og:description" content="[^"]*" \/>/, `<meta property="og:description" content="${esc(t.seo.description)}" />`)
+    .replace(/<meta property="og:locale" content="es_ES" \/>/, `<meta property="og:locale" content="${ogLocale}" />`)
+    .replace(/<meta property="og:locale:alternate" content="en_US" \/>/, `<meta property="og:locale:alternate" content="${ogLocaleAlt}" />`)
+    .replace(/<meta name="twitter:url" content="[^"]*" \/>/, `<meta name="twitter:url" content="${url}" />`)
+    .replace(/<meta name="twitter:title" content="[^"]*" \/>/, `<meta name="twitter:title" content="${esc(t.seo.title)}" />`)
+    .replace(/<meta name="twitter:description" content="[^"]*" \/>/, `<meta name="twitter:description" content="${esc(t.seo.description)}" />`);
+
+  // Replace homepage JSON-LD with ProfilePage JSON-LD
+  result = result.replace(
+    /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
+    aboutJsonLdScript,
+  );
+
+  aboutPages.push({ slug, html: result });
+}
 
 // ---------------------------------------------------------------------------
 // Article pages — build from registry
@@ -315,6 +460,11 @@ async function inlineCriticalCSS() {
   await writePage(injectedEs, indexPath, 'ES: dist/index.html updated');
   await writePage(enPage, resolve(distDir, 'en', 'index.html'), 'EN: dist/en/index.html created');
 
+  // About pages
+  for (const { slug, html } of aboutPages) {
+    await writePage(html, resolve(distDir, slug, 'index.html'), `${slug}: dist/${slug}/index.html created`);
+  }
+
   // Article pages
   for (const { slug, html } of articlePages) {
     await writePage(html, resolve(distDir, slug, 'index.html'), `${slug}: dist/${slug}/index.html created`);
@@ -364,6 +514,11 @@ function validateHydrationStructure(html: string, label: string) {
 // Validate home pages
 validateHydrationStructure(injectedEs, 'home-es');
 validateHydrationStructure(enPage, 'home-en');
+
+// Validate about pages
+for (const { slug, html } of aboutPages) {
+  validateHydrationStructure(html, slug);
+}
 
 // Validate article pages
 for (const { slug, html } of articlePages) {

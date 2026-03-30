@@ -67,6 +67,24 @@ urls.push({
   priority: '0.9',
 })
 
+// About / Entity Home — ES + EN
+urls.push({
+  loc: `${base}/sobre-mi`,
+  hreflangEs: `${base}/sobre-mi`,
+  hreflangEn: `${base}/about`,
+  xDefault: `${base}/sobre-mi`,
+  lastmod: today,
+  priority: '0.9',
+})
+urls.push({
+  loc: `${base}/about`,
+  hreflangEs: `${base}/sobre-mi`,
+  hreflangEn: `${base}/about`,
+  xDefault: `${base}/sobre-mi`,
+  lastmod: today,
+  priority: '0.9',
+})
+
 // Articles from registry
 for (const article of articleRegistry) {
   const esUrl = `${base}/${article.slugs.es}`
