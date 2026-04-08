@@ -62,7 +62,7 @@ export function useVoiceMode() {
   const pendingListenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thinkingSoundStopRef = useRef<(() => void) | null>(null);
   const sessionStartRef = useRef(0);
-  const langRef = useRef('es');
+  const langRef = useRef('en');
   const sessionIdRef = useRef('');
   const transcriptRef = useRef<TranscriptEntry[]>([]);
 
@@ -392,7 +392,7 @@ export function useVoiceMode() {
         if (history.length > 0) {
           const historyText = history
             .filter(m => m.content && m.content.trim())
-            .map(m => `${m.role === 'user' ? 'User' : 'Santiago'}: ${m.content}`)
+            .map(m => `${m.role === 'user' ? 'User' : 'Ankit'}: ${m.content}`)
             .join('\n');
 
           if (historyText) {
@@ -714,7 +714,7 @@ export function useVoiceMode() {
         item: {
           type: 'function_call_output',
           call_id: callId,
-          output: 'Search temporarily unavailable — answer from your general knowledge.',
+          output: 'Search is temporarily unavailable. Stay within Ankit\'s portfolio scope, avoid guessing, and answer only from confirmed profile details you already know.',
         },
       }));
       ws.send(JSON.stringify({ type: 'response.create' }));

@@ -90,13 +90,12 @@ export function ArticleHeader({
   date,
   dateISO,
   readingTime,
-  authorName = 'Santiago Fernández de Valderrama',
+  authorName = 'Ankit Das',
   authorUrl,
   authorBio,
-  avatarSrc = '/foto-avatar-sm.webp',
-  lang,
+  avatarSrc = '/ankit-headshot.jpeg',
 }: ArticleHeaderProps) {
-  const resolvedAuthorUrl = authorUrl ?? (lang === 'es' ? '/sobre-mi' : '/about')
+  const resolvedAuthorUrl = authorUrl ?? '/'
   return (
     <header className="mb-10">
       <p className="text-primary font-medium text-sm mb-3 tracking-wide uppercase">
@@ -158,33 +157,33 @@ interface ArticleFooterProps {
 const FOOTER_I18N = {
   es: {
     role: 'AI Product Manager · Solutions Architect · AI FDE',
-    bio: 'Construyó y vendió un negocio de 16 años en 2025. Ahora aplica el mismo pensamiento de sistemas a AI enterprise.',
-    fellowAt: 'Teaching Fellow en',
+    bio: 'Ingeniero de IA, software y full-stack centrado en sistemas geoespaciales, aplicaciones RAG y productos orientados al usuario.',
+    fellowAt: 'Estudiante en',
     copyright: 'Todos los derechos reservados.',
   },
   en: {
-    role: 'AI Product Manager · Solutions Architect · AI FDE',
-    bio: 'Built and sold a 16-year business in 2025. Now bringing that same systems thinking to enterprise AI.',
-    fellowAt: 'Teaching Fellow at',
+    role: 'AI/Software and Full Stack Engineer',
+    bio: 'Engineer focused on geospatial systems, RAG applications, and user-facing products built on strong backend foundations.',
+    fellowAt: 'Student at',
     copyright: 'All rights reserved.',
   },
 } as const
 
 export function ArticleFooter({ lang, utmCampaign }: ArticleFooterProps) {
   const f = FOOTER_I18N[lang]
-  const fellowUrl = `https://maven.com/marily-nika/ai-pm-bootcamp?utm_source=santifer&utm_medium=casestudy&utm_campaign=${utmCampaign}`
+  const fellowUrl = `https://www.sewanee.edu?utm_source=ankitd.com&utm_medium=portfolio&utm_campaign=${utmCampaign}`
   return (
     <footer className="mt-16 pt-8 border-t border-border">
       <div className="flex items-start gap-3 mb-6">
         <img
-          src="/foto-avatar-sm.webp"
-          alt="Santiago Fernández de Valderrama"
+          src="/ankit-headshot.jpeg"
+          alt="Ankit Das"
           className="w-12 h-12 rounded-full shrink-0"
           width={48}
           height={48}
         />
         <div>
-          <p className="font-medium text-foreground">Santiago Fernández de Valderrama</p>
+          <p className="font-medium text-foreground">Ankit Das</p>
           <p className="text-sm text-muted-foreground">
             {f.role}
             {' · '}{f.fellowAt}{' '}
@@ -194,34 +193,30 @@ export function ArticleFooter({ lang, utmCampaign }: ArticleFooterProps) {
               rel="noopener noreferrer nofollow"
               className="text-primary hover:underline"
             >
-              AI Product Academy
+              The University of the South
             </a>
           </p>
         </div>
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed mb-1">{f.bio}</p>
       <Link
-        to={lang === 'es' ? '/sobre-mi' : '/about'}
+        to="/"
         className="inline-block text-sm text-primary hover:underline transition-colors mb-6"
       >
-        {lang === 'es' ? 'Más sobre el autor →' : 'More about the author →'}
+        {lang === 'es' ? 'Volver al portfolio →' : 'Back to portfolio →'}
       </Link>
       <div className="flex gap-3 mb-8">
-        <a href="https://linkedin.com/in/santifer" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0A66C2]/10 border border-[#0A66C2]/20 text-sm font-medium text-[#0A66C2] hover:bg-[#0A66C2]/20 transition-colors">
+        <a href="https://linkedin.com/in/ankitda" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0A66C2]/10 border border-[#0A66C2]/20 text-sm font-medium text-[#0A66C2] hover:bg-[#0A66C2]/20 transition-colors">
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
           LinkedIn
         </a>
-        <a href="https://github.com/santifer" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
+        <a href="https://github.com/ankii08" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
           GitHub
         </a>
       </div>
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span>&copy; {new Date().getFullYear()} Santiago Fernández de Valderrama. {f.copyright}</span>
-        <span className="text-border">|</span>
-        <Link to={lang === 'es' ? '/privacidad' : '/privacy'} className="hover:text-primary transition-colors">
-          {lang === 'es' ? 'Privacidad' : 'Privacy'}
-        </Link>
+        <span>&copy; {new Date().getFullYear()} Ankit Das. {f.copyright}</span>
       </div>
     </footer>
   )

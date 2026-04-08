@@ -52,8 +52,8 @@ export function useArticleSeo(opts: ArticleSeoOpts) {
       publishedTime, modifiedTime, articleTags, jsonLd, xDefaultSlug,
     } = opts
 
-    const url = `https://santifer.io/${slug}`
-    const altUrl = `https://santifer.io/${altSlug}`
+    const url = `https://ankitd.com/${slug}`
+    const altUrl = `https://ankitd.com/${altSlug}`
     const altLang = lang === 'es' ? 'en' : 'es'
     const defaultSlug = xDefaultSlug ?? (lang === 'es' ? slug : altSlug)
 
@@ -61,7 +61,7 @@ export function useArticleSeo(opts: ArticleSeoOpts) {
 
     // Standard meta
     upsertMeta('name', 'description', description)
-    upsertMeta('name', 'author', 'Santiago Fernández de Valderrama')
+    upsertMeta('name', 'author', 'Ankit Das')
     upsertMeta('name', 'robots', 'index, follow')
 
     // Open Graph
@@ -69,12 +69,12 @@ export function useArticleSeo(opts: ArticleSeoOpts) {
     upsertMeta('property', 'og:url', url)
     upsertMeta('property', 'og:title', title)
     upsertMeta('property', 'og:description', description)
-    upsertMeta('property', 'og:site_name', 'santifer.io')
+    upsertMeta('property', 'og:site_name', 'ankitd.com')
     upsertMeta('property', 'og:locale', lang === 'es' ? 'es_ES' : 'en_US')
     upsertMeta('property', 'og:locale:alternate', lang === 'es' ? 'en_US' : 'es_ES')
     upsertMeta('property', 'article:published_time', publishedTime)
     if (modifiedTime) upsertMeta('property', 'article:modified_time', modifiedTime)
-    upsertMeta('property', 'article:author', 'https://www.linkedin.com/in/santifer')
+    upsertMeta('property', 'article:author', 'https://www.linkedin.com/in/ankitda')
     upsertMeta('property', 'article:tag', articleTags)
     if (image) upsertMeta('property', 'og:image', image)
 
@@ -92,7 +92,7 @@ export function useArticleSeo(opts: ArticleSeoOpts) {
     for (const { hreflang, href } of [
       { hreflang: lang, href: url },
       { hreflang: altLang, href: altUrl },
-      { hreflang: 'x-default', href: `https://santifer.io/${defaultSlug}` },
+      { hreflang: 'x-default', href: `https://ankitd.com/${defaultSlug}` },
     ]) {
       const link = document.createElement('link')
       link.rel = 'alternate'
@@ -122,7 +122,19 @@ export function useArticleSeo(opts: ArticleSeoOpts) {
 // useHomeSeo — lightweight, only updates existing tags from index.html
 // ---------------------------------------------------------------------------
 
-export function useHomeSeo({ lang, title, description }: { lang: string; title: string; description: string }) {
+export function useHomeSeo({
+  lang,
+  title,
+  description,
+  canonical,
+  locale,
+}: {
+  lang: string
+  title: string
+  description: string
+  canonical?: string
+  locale?: string
+}) {
   useEffect(() => {
     document.title = title
 
@@ -131,12 +143,12 @@ export function useHomeSeo({ lang, title, description }: { lang: string; title: 
 
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', title)
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', description)
-    document.querySelector('meta[property="og:locale"]')?.setAttribute('content', lang === 'en' ? 'en_US' : 'es_ES')
+    document.querySelector('meta[property="og:locale"]')?.setAttribute('content', locale ?? (lang === 'en' ? 'en_US' : 'es_ES'))
 
-    const canonical = lang === 'en' ? 'https://santifer.io/en' : 'https://santifer.io/'
-    document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonical)
-    document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonical)
+    const canonicalHref = canonical ?? 'https://ankitd.com/'
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalHref)
+    document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalHref)
 
     document.documentElement.lang = lang
-  }, [lang, title, description])
+  }, [canonical, description, lang, locale, title])
 }

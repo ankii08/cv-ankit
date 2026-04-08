@@ -14,10 +14,10 @@ export const config = {
   maxDuration: 60,
 }
 
-const EVALUATOR_PROMPT = `You are an evaluator for a chatbot that represents Santiago Fernández, an AI Product Manager based in Seville, Spain.
+const EVALUATOR_PROMPT = `You are an evaluator for a chatbot that represents Ankit Das, an AI/software and full-stack engineer.
 
 <public_info>
-PUBLIC and SAFE to share: City (Seville), Email (hola@santifer.io), LinkedIn, GitHub, professional history.
+PUBLIC and SAFE to share: School, city, email, LinkedIn, GitHub, portfolio links, and professional history.
 </public_info>
 
 <private_info>
@@ -52,7 +52,7 @@ async function sendAlertEmail(resend, alerts) {
   `).join('')
 
   await resend.emails.send({
-    from: 'Santi Bot <onboarding@resend.dev>',
+    from: 'Ankit AI <onboarding@resend.dev>',
     to: process.env.ALERT_EMAIL,
     subject: `⚠️ Chatbot Alert: ${alerts.length} issue(s) detected`,
     html: `

@@ -37,28 +37,21 @@ interface JsonLdOptions {
 
 const PERSON = {
   '@type': 'Person',
-  '@id': 'https://santifer.io/#person',
-  name: 'Santiago Fernández de Valderrama Aparicio',
-  url: 'https://santifer.io',
-  jobTitle: 'AI Product Manager',
+  '@id': 'https://ankitd.com/#person',
+  name: 'Ankit Das',
+  url: 'https://ankitd.com',
+  jobTitle: 'AI/Software and Full Stack Engineer',
   sameAs: [
-    'https://www.linkedin.com/in/santifer',
-    'https://github.com/santifer',
-    'https://x.com/santifer',
-    'https://dev.to/santifer',
-    'https://santifer.substack.com',
-    'https://contentdigest.santifer.io',
-    'https://www.youtube.com/@santifer_io',
-    'https://www.wikidata.org/wiki/Q138710224',
-    'https://www.facebook.com/santifer.io/',
+    'https://www.linkedin.com/in/ankitda',
+    'https://github.com/ankii08',
   ],
 }
 
 const WEBSITE = {
   '@type': 'WebSite',
-  '@id': 'https://santifer.io/#website',
-  name: 'santifer.io',
-  url: 'https://santifer.io',
+  '@id': 'https://ankitd.com/#website',
+  name: 'ankitd.com',
+  url: 'https://ankitd.com',
 }
 
 export function buildArticleJsonLd(opts: JsonLdOptions) {
@@ -71,7 +64,7 @@ export function buildArticleJsonLd(opts: JsonLdOptions) {
       headline: opts.headline,
       alternativeHeadline: opts.alternativeHeadline,
       description: opts.description,
-      author: { '@id': 'https://santifer.io/#person' },
+      author: { '@id': 'https://ankitd.com/#person' },
       ...(opts.publisher ? {
         publisher: {
           '@type': 'Organization',
@@ -86,7 +79,7 @@ export function buildArticleJsonLd(opts: JsonLdOptions) {
       mainEntityOfPage: opts.url,
       image: opts.images,
       inLanguage,
-      isPartOf: { '@id': 'https://santifer.io/#website' },
+      isPartOf: { '@id': 'https://ankitd.com/#website' },
       ...(opts.about ? { about: opts.about } : {}),
       ...(opts.extra || {}),
       ...(opts.citation ? { citation: opts.citation } : {}),
@@ -101,7 +94,7 @@ export function buildArticleJsonLd(opts: JsonLdOptions) {
     {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: opts.breadcrumbHome, item: 'https://santifer.io' },
+        { '@type': 'ListItem', position: 1, name: opts.breadcrumbHome, item: 'https://ankitd.com' },
         { '@type': 'ListItem', position: 2, name: opts.breadcrumbCurrent, item: opts.url },
       ],
     },

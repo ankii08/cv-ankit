@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import {
   X,
   Send,
@@ -13,381 +13,332 @@ import {
   Mic,
   MessageSquare,
   PhoneOff,
-} from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { translations } from './i18n';
-import { getSectionLabels, getPageTitles } from './articles/registry';
-import { useVoiceMode } from './useVoiceMode';
-import VoiceOrb from './VoiceOrb';
+  Sparkles,
+} from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useVoiceMode } from './useVoiceMode'
+import VoiceOrb from './VoiceOrb'
 
-interface RagSource {
-  article_id: string;
-  section_id: string;
-  section_anchor: string;
-  page_path_en: string;
-  page_path_es: string;
-  article_slug_en: string;
-  article_slug_es: string;
+type RagSource = {
+  article_id: string
+  section_id: string
+  section_anchor: string
+  page_path_en: string
+  page_path_es: string
+  article_slug_en: string
+  article_slug_es: string
 }
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  ragSources?: RagSource[];
-  ragDegraded?: boolean;
+type Message = {
+  role: 'user' | 'assistant'
+  content: string
+  ragSources?: RagSource[]
+  ragDegraded?: boolean
 }
 
-interface FloatingChatProps {
-  lang: 'es' | 'en';
+const TEXT = {
+  title: 'Ask AI Ankit',
+  subtitle: 'Voice + chat assistant for Ankit’s portfolio',
+  greeting:
+    "I'm Ankit's AI portfolio assistant. Ask about his experience, projects, skills, or what kinds of engineering roles he's a strong fit for.",
+  placeholder: "Ask about Ankit's work...",
+  typingIndicator: 'Thinking...',
+  offline: 'You appear to be offline right now. Please reconnect and try again.',
+  error: 'The AI assistant is unavailable right now. Please try again shortly.',
+  ragDegraded: 'Answering without full retrieval context right now.',
+  contactCtaTitle: 'Want to reach Ankit directly?',
+  voice: {
+    start: 'Start voice mode',
+    stop: 'End voice mode',
+    switchToText: 'Back to text',
+    connecting: 'Connecting voice session...',
+    listening: 'Listening...',
+    thinking: 'Thinking...',
+    searching: 'Searching portfolio context...',
+    speaking: 'Speaking...',
+    unsupported: 'Voice mode is not supported in this browser.',
+    micDenied: 'Microphone access is blocked.',
+    rateLimited: 'Voice limit reached for today.',
+    connection: 'Voice mode is temporarily unavailable.',
+  },
+  prompts: [
+    { icon: Briefcase, label: '30-second summary', query: 'What should I know about Ankit in 30 seconds?' },
+    { icon: Rocket, label: 'AI + RAG work', query: 'Tell me about his AI and RAG experience.' },
+    { icon: HelpCircle, label: 'Best projects', query: 'Which projects show the strongest product thinking?' },
+    { icon: Mail, label: 'Role fit', query: 'What kind of roles is he a fit for?' },
+  ],
+} as const
+
+const STORAGE_KEY = 'ankit-chat'
+
+const SOURCE_LABELS: Record<string, string> = {
+  about: 'About',
+  education: 'Education',
+  'education-programs': 'Education Programs',
+  'experience-trc': 'TRC Companies',
+  'experience-spectrum': 'Spectrum / Charter',
+  'experience-digital-nepal': 'Digital Nepal',
+  'project-dynatrust-rag': 'DynaTrust-RAG',
+  'project-tiger-bites': 'Tiger Bites',
+  'project-shuttle': 'Campus Shuttle Tracking',
+  'project-ats-resume-checker': 'ATS Resume Checker',
+  'project-ai-writing-assistant': 'AI Writing Assistant',
+  'project-retail-sales-prediction': 'Retail Sales Prediction',
+  skills: 'Skills',
+  contact: 'Contact',
 }
 
-const PromptIcon = ({ icon }: { icon: string }) => {
-  const icons = {
-    briefcase: Briefcase,
-    rocket: Rocket,
-    help: HelpCircle,
-    mail: Mail,
-  };
-  const Icon = icons[icon as keyof typeof icons] || HelpCircle;
-  return <Icon className="w-3.5 h-3.5" aria-hidden="true" />;
-};
+function loadSession() {
+  if (typeof window === 'undefined') {
+    return {
+      messages: [{ role: 'assistant', content: TEXT.greeting }] as Message[],
+      sessionId: 'server-session',
+      showPrompts: true,
+    }
+  }
 
-// Hook para detectar móvil
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  return isMobile;
-}
-
-/** Auto-close unclosed bold markers for progressive markdown rendering during streaming */
-function autoCloseMarkdown(text: string): string {
-  const boldCount = (text.match(/\*\*/g) || []).length;
-  if (boldCount % 2 === 1) text += '**';
-  return text;
-}
-
-/** Convert bare URLs in text to markdown links so ReactMarkdown renders them */
-function linkifyUrls(text: string): string {
-  // First: fix malformed markdown links — [text](url without closing )
-  let fixed = text.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\)\s*)?/g,
-    (_match, label, url) => {
-      const cleanUrl = url.replace(/[.,;:!?]+$/, '');
-      return `[${label}](${cleanUrl})`;
-    },
-  );
-
-  // Then: linkify bare URLs not already inside markdown link syntax
-  fixed = fixed.replace(
-    /(https?:\/\/[^\s)]+|(?:[\w-]+\.)+(?:io|com|org|net|dev|app|co)(?:\/[^\s)]*)?)/g,
-    (match, _url, offset) => {
-      // Skip if inside a markdown link: check for [...]( before or [ before
-      const before = fixed.slice(Math.max(0, offset - 200), offset);
-      if (/\]\($/.test(before)) return match;
-      if (/\[[^\]]*$/.test(before)) return match;
-      return `[${match}](${match.startsWith('http') ? match : `https://${match}`})`;
-    },
-  );
-
-  return fixed;
-}
-
-const STORAGE_KEY = 'santi-chat';
-
-function loadSession(fallbackGreeting: string): { messages: Message[]; sessionId: string; showPrompts: boolean } {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY)
     if (raw) {
-      const data = JSON.parse(raw);
+      const data = JSON.parse(raw)
       if (Array.isArray(data.messages) && data.messages.length > 0 && typeof data.sessionId === 'string') {
-        const hasUserMessages = data.messages.some((m: Message) => m.role === 'user');
-        return { messages: data.messages, sessionId: data.sessionId, showPrompts: !hasUserMessages };
+        const hasUserMessages = data.messages.some((message: Message) => message.role === 'user')
+        return { messages: data.messages as Message[], sessionId: data.sessionId as string, showPrompts: !hasUserMessages }
       }
     }
-  } catch { /* ignore corrupt storage */ }
-  const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  return { messages: [{ role: 'assistant', content: fallbackGreeting }], sessionId, showPrompts: true };
+  } catch {
+    // ignore storage errors
+  }
+
+  return {
+    messages: [{ role: 'assistant', content: TEXT.greeting }] as Message[],
+    sessionId: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    showPrompts: true,
+  }
 }
 
 function saveSession(messages: Message[], sessionId: string) {
   try {
-    // Don't persist empty assistant messages (loading placeholders)
-    const clean = messages.filter((m) => m.content !== '');
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ messages: clean, sessionId }));
-  } catch { /* storage full or unavailable */ }
+    const clean = messages.filter((message) => message.content !== '')
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ messages: clean, sessionId }))
+  } catch {
+    // ignore storage errors
+  }
 }
 
-export default function FloatingChat({ lang }: FloatingChatProps) {
-  const t = translations[lang].chat;
-  const v = t.voice;
-  const [isOpen, setIsOpen] = useState(() => window.location.hash === '#chat');
-  const [immersive, setImmersive] = useState(false);
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Open chat when navigating to #chat
   useEffect(() => {
-    const onHash = () => { if (window.location.hash === '#chat') setIsOpen(true) }
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  return isMobile
+}
+
+function autoCloseMarkdown(text: string) {
+  const boldCount = (text.match(/\*\*/g) || []).length
+  if (boldCount % 2 === 1) return `${text}**`
+  return text
+}
+
+function linkifyUrls(text: string) {
+  return text.replace(
+    /(https?:\/\/[^\s)]+|(?:[\w-]+\.)+(?:io|com|org|net|dev|app|edu)(?:\/[^\s)]*)?)/g,
+    (match, _url, offset) => {
+      const before = text.slice(Math.max(0, offset - 200), offset)
+      if (/\]\($/.test(before) || /\[[^\]]*$/.test(before)) return match
+      return `[${match}](${match.startsWith('http') ? match : `https://${match}`})`
+    }
+  )
+}
+
+function sourceLabel(source: RagSource) {
+  return SOURCE_LABELS[source.article_id] || source.article_id.replace(/-/g, ' ')
+}
+
+export default function FloatingChat() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isMobile = useIsMobile()
+  const [isOpen, setIsOpen] = useState(() => (typeof window !== 'undefined' ? window.location.hash === '#chat' : false))
+  const [mode, setMode] = useState<'text' | 'voice'>('text')
+  const [session] = useState(loadSession)
+  const [messages, setMessages] = useState<Message[]>(session.messages)
+  const [sessionId] = useState(session.sessionId)
+  const [showPrompts, setShowPrompts] = useState(session.showPrompts)
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
+
+  const voiceMode = useVoiceMode()
+  const abortRef = useRef<AbortController | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const isAtBottomRef = useRef(true)
+  const fullTextRef = useRef('')
+  const drainPosRef = useRef(0)
+  const isStreamingRef = useRef(false)
+  const drainTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pendingRagSourcesRef = useRef<RagSource[]>([])
+  const pendingRagDegradedRef = useRef(false)
+
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true)
+    window.addEventListener('openChat', handleOpen)
+    return () => window.removeEventListener('openChat', handleOpen)
+  }, [])
+
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash === '#chat') setIsOpen(true)
+    }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
-  // Hide when immersive mode is active (architecture diagram, etc.)
   useEffect(() => {
-    const onImmersive = (e: Event) => setImmersive((e as CustomEvent).detail?.active ?? false)
-    window.addEventListener('immersive', onImmersive)
-    return () => window.removeEventListener('immersive', onImmersive)
-  }, [])
+    window.dispatchEvent(new CustomEvent('chatToggle', { detail: { open: isOpen } }))
+  }, [isOpen])
 
-  const [session] = useState(() => loadSession(t.greeting));
-  const [messages, setMessages] = useState<Message[]>(session.messages);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [showPrompts, setShowPrompts] = useState(session.showPrompts);
-  const [sessionId] = useState(session.sessionId);
-  const [mode, setMode] = useState<'text' | 'voice'>('text');
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  // Voice mode
-  const voiceMode = useVoiceMode();
-
-  // Word-by-word streaming refs
-  const fullTextRef = useRef('');        // full accumulated text from SSE
-  const drainPosRef = useRef(0);         // how far we've rendered into fullTextRef
-  const isStreamingRef = useRef(false);
-  const drainTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pendingRagSourcesRef = useRef<RagSource[]>([]);
-  const pendingRagDegradedRef = useRef(false);
-  const abortRef = useRef<AbortController | null>(null);
-
-  // Scroll-up detection: don't yank user back down during streaming
-  const isAtBottomRef = useRef(true);
-
-  const isMobile = useIsMobile();
-
-  // Emit chatToggle event for ambient music ducking
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('chatToggle', { detail: { open: isOpen } }));
-  }, [isOpen]);
+    if (!isLoading) saveSession(messages, sessionId)
+  }, [messages, isLoading, sessionId])
 
-  const userMessageCount = messages.filter((m) => m.role === 'user').length;
-
-  // Cleanup drain timer on unmount
   useEffect(() => {
-    return () => {
-      if (drainTimerRef.current) clearInterval(drainTimerRef.current);
-    };
-  }, []);
-
-  // Track whether user has scrolled up (to suppress auto-scroll during streaming)
-  useEffect(() => {
-    const container = chatContainerRef.current?.querySelector('.custom-scrollbar');
-    if (!container) return;
-    const onScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 40;
-    };
-    container.addEventListener('scroll', onScroll, { passive: true });
-    return () => container.removeEventListener('scroll', onScroll);
-  }, [isOpen]);
-
-  // Scroll automático: only if user hasn't scrolled up
-  useEffect(() => {
-    if (!isOpen || !isAtBottomRef.current) return;
+    if (!isOpen || !isAtBottomRef.current) return
     messagesEndRef.current?.scrollIntoView({
       behavior: isLoading || isStreaming ? 'instant' : 'smooth',
-      block: 'end'
-    });
-  }, [messages, isLoading, isStreaming, isOpen]);
+      block: 'end',
+    })
+  }, [messages, isLoading, isStreaming, isOpen])
 
-  // Focus en input al abrir
   useEffect(() => {
-    if (isOpen && !isMobile && mode === 'text') {
-      inputRef.current?.focus();
+    if (isOpen && mode === 'text' && !isMobile) {
+      inputRef.current?.focus()
     }
-  }, [isOpen, isMobile, mode]);
+  }, [isOpen, isMobile, mode])
 
-  // Escuchar evento global para abrir chat desde otros componentes
   useEffect(() => {
-    const handleOpenChat = () => setIsOpen(true);
-    window.addEventListener('openChat', handleOpenChat);
-    return () => window.removeEventListener('openChat', handleOpenChat);
-  }, []);
+    return () => {
+      abortRef.current?.abort()
+      if (drainTimerRef.current) clearInterval(drainTimerRef.current)
+    }
+  }, [])
 
-  // Bloquear scroll del body cuando el chat está abierto en móvil
+  useEffect(() => {
+    const container = chatContainerRef.current?.querySelector('.custom-scrollbar')
+    if (!container) return
+    const onScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 40
+    }
+    container.addEventListener('scroll', onScroll, { passive: true })
+    return () => container.removeEventListener('scroll', onScroll)
+  }, [isOpen])
+
   useEffect(() => {
     if (isMobile && isOpen) {
-      const scrollY = window.scrollY;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${scrollY}px`;
+      const scrollY = window.scrollY
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      document.body.style.top = `-${scrollY}px`
 
-      // Prevenir cualquier scroll del body
-      const preventScroll = (e: TouchEvent) => {
-        if (!(e.target as HTMLElement).closest('.custom-scrollbar')) {
-          e.preventDefault();
-        }
-      };
-      document.addEventListener('touchmove', preventScroll, { passive: false });
+      const preventScroll = (event: TouchEvent) => {
+        if (!(event.target as HTMLElement).closest('.custom-scrollbar')) event.preventDefault()
+      }
 
+      document.addEventListener('touchmove', preventScroll, { passive: false })
       return () => {
-        document.removeEventListener('touchmove', preventScroll);
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.top = '';
-        window.scrollTo(0, scrollY);
-      };
+        document.removeEventListener('touchmove', preventScroll)
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.top = ''
+        window.scrollTo(0, scrollY)
+      }
     }
-  }, [isMobile, isOpen]);
+  }, [isMobile, isOpen])
 
-  // Persist messages to sessionStorage
-  useEffect(() => {
-    if (!isLoading) {
-      saveSession(messages, sessionId);
+  const userMessageCount = messages.filter((message) => message.role === 'user').length
+
+  const getVoiceStatusText = () => {
+    const statusMap: Record<string, string> = {
+      connecting: TEXT.voice.connecting,
+      listening: TEXT.voice.listening,
+      thinking: voiceMode.isSearching ? TEXT.voice.searching : TEXT.voice.thinking,
+      speaking: TEXT.voice.speaking,
+      error: voiceMode.state.error
+        ? TEXT.voice[voiceMode.state.error as keyof typeof TEXT.voice] || TEXT.voice.connection
+        : TEXT.voice.connection,
     }
-  }, [messages, isLoading, sessionId]);
 
-  // Update greeting when lang changes — only if no conversation has started
-  useEffect(() => {
-    const hasUserMessages = messages.some((m) => m.role === 'user');
-    if (!hasUserMessages) {
-      setMessages([{ role: 'assistant', content: t.greeting }]);
-      setShowPrompts(true);
-    }
-  }, [lang]);
+    return statusMap[voiceMode.state.status] || ''
+  }
 
-  // Escape key stops voice mode
-  useEffect(() => {
-    if (mode !== 'voice') return;
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleStopVoice();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [mode]);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  /** Drain fullTextRef character-by-character for smooth typing effect */
   const startDrain = () => {
-    if (drainTimerRef.current) return; // already draining
+    if (drainTimerRef.current) return
+
     drainTimerRef.current = setInterval(() => {
-      const full = fullTextRef.current;
-      const pos = drainPosRef.current;
+      const full = fullTextRef.current
+      const pos = drainPosRef.current
 
       if (pos < full.length) {
-        drainPosRef.current = pos + 1;
+        drainPosRef.current = pos + 1
+        const currentText = full.slice(0, drainPosRef.current)
+        const sources = pendingRagSourcesRef.current
+        const degraded = pendingRagDegradedRef.current
 
-        const currentText = full.slice(0, drainPosRef.current);
-        const sources = pendingRagSourcesRef.current;
-        const degraded = pendingRagDegradedRef.current;
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1] = {
+        setMessages((prev) => [
+          ...prev.slice(0, -1),
+          {
             role: 'assistant',
             content: currentText,
             ragSources: sources.length > 0 ? sources : undefined,
             ragDegraded: degraded || undefined,
-          };
-          return newMessages;
-        });
+          },
+        ])
       } else if (!isStreamingRef.current) {
-        // Fully drained and stream done — stop
         if (drainTimerRef.current) {
-          clearInterval(drainTimerRef.current);
-          drainTimerRef.current = null;
+          clearInterval(drainTimerRef.current)
+          drainTimerRef.current = null
         }
-        setIsStreaming(false);
+        setIsStreaming(false)
       }
-      // pos === full.length but stream active — wait for more text
-    }, 30);
-  };
-
-  // Voice mode handlers
-  const handleStartVoice = () => {
-    setMode('voice');
-    voiceMode.start(messages, lang, sessionId, location.pathname);
-  };
-
-  const handleStopVoice = () => {
-    // Merge transcript into messages
-    const transcript = voiceMode.state.transcript;
-    if (transcript.length > 0) {
-      setMessages(prev => [
-        ...prev,
-        ...transcript.map(t => ({ role: t.role as 'user' | 'assistant', content: t.text })),
-      ]);
-      setShowPrompts(false);
-    }
-    voiceMode.stop();
-    setMode('text');
-  };
-
-  const handleSwitchToText = () => {
-    handleStopVoice();
-  };
-
-  // Get voice status text from i18n
-  const getVoiceStatusText = () => {
-    const statusMap: Record<string, string> = {
-      connecting: v.connecting,
-      listening: v.listening,
-      thinking: voiceMode.isSearching ? v.searching : v.thinking,
-      speaking: v.speaking,
-      error: voiceMode.state.error
-        ? v[voiceMode.state.error as keyof typeof v] || v.connection
-        : '',
-    };
-    return statusMap[voiceMode.state.status] || '';
-  };
-
-  // Can toggle to voice?
-  const canStartVoice = !isLoading && !isStreaming && voiceMode.isSupported;
+    }, 22)
+  }
 
   const sendMessage = async (messageText?: string) => {
-    const text = messageText || input.trim();
-    if (!text || isLoading) return;
+    const text = messageText || input.trim()
+    if (!text || isLoading) return
 
-    setInput('');
-    setShowPrompts(false);
-    setMessages((prev) => [...prev, { role: 'user', content: text }]);
-    setIsLoading(true);
+    setInput('')
+    setShowPrompts(false)
+    setMessages((prev) => [...prev, { role: 'user', content: text }, { role: 'assistant', content: '' }])
+    setIsLoading(true)
 
-    // Reset streaming state
-    fullTextRef.current = '';
-    drainPosRef.current = 0;
-    isStreamingRef.current = false;
-    pendingRagSourcesRef.current = [];
-    pendingRagDegradedRef.current = false;
+    fullTextRef.current = ''
+    drainPosRef.current = 0
+    isStreamingRef.current = false
+    pendingRagSourcesRef.current = []
+    pendingRagDegradedRef.current = false
     if (drainTimerRef.current) {
-      clearInterval(drainTimerRef.current);
-      drainTimerRef.current = null;
+      clearInterval(drainTimerRef.current)
+      drainTimerRef.current = null
     }
 
-    // Add empty assistant message BEFORE fetch so loading indicator shows
-    setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-
     try {
-      if (!navigator.onLine) {
-        throw new Error('offline');
-      }
+      if (!navigator.onLine) throw new Error('offline')
 
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -395,176 +346,179 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
         signal: controller.signal,
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: text }].filter(
-            (m) => m.role !== 'assistant' || m.content !== t.greeting,
+            (message) => message.role !== 'assistant' || message.content !== TEXT.greeting
           ),
-          lang,
+          lang: 'en',
           sessionId,
           currentPage: location.pathname,
         }),
-      });
+      })
 
-      if (!response.ok) throw new Error('Failed to send message');
+      if (!response.ok) throw new Error('request_failed')
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('reader_missing')
 
-      if (!reader) throw new Error('No reader available');
-
-      let buffer = '';
-      let fullText = '';
-      let currentEventType = '';
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let fullText = ''
+      let currentEventType = ''
 
       while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
 
-        buffer += decoder.decode(value, { stream: true });
-
-        // Process complete lines only
-        let newlineIndex;
+        let newlineIndex
         while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-          const line = buffer.slice(0, newlineIndex).trim();
-          buffer = buffer.slice(newlineIndex + 1);
+          const line = buffer.slice(0, newlineIndex).trim()
+          buffer = buffer.slice(newlineIndex + 1)
 
-          // Parse SSE event type
           if (line.startsWith('event: ')) {
-            currentEventType = line.slice(7);
-            continue;
+            currentEventType = line.slice(7)
+            continue
           }
 
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            try {
-              const data = JSON.parse(line.slice(6));
+          if (!line.startsWith('data: ') || line === 'data: [DONE]') continue
 
-              if (currentEventType === 'rag-sources') {
-                pendingRagSourcesRef.current = data as RagSource[];
-                currentEventType = '';
-                continue;
-              }
+          try {
+            const data = JSON.parse(line.slice(6))
 
-              if (currentEventType === 'rag-status') {
-                pendingRagDegradedRef.current = data.status === 'degraded';
-                currentEventType = '';
-                continue;
-              }
-
-              currentEventType = '';
-
-              if (data.text) {
-                if (data.replace) {
-                  // Leak blocked — bypass buffer, render immediately
-                  fullText = data.text;
-                  fullTextRef.current = data.text;
-                  drainPosRef.current = data.text.length;
-                  const sources = pendingRagSourcesRef.current;
-                  const degraded = pendingRagDegradedRef.current;
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    newMessages[newMessages.length - 1] = {
-                      role: 'assistant',
-                      content: data.text,
-                      ragSources: sources.length > 0 ? sources : undefined,
-                      ragDegraded: degraded || undefined,
-                    };
-                    return newMessages;
-                  });
-                } else {
-                  // First chunk — activate streaming
-                  if (!isStreamingRef.current) {
-                    isStreamingRef.current = true;
-                    setIsStreaming(true);
-                  }
-
-                  fullText += data.text;
-                  fullTextRef.current = fullText;
-                  startDrain();
-                }
-              }
-            } catch {
-              // Skip malformed JSON
-              currentEventType = '';
+            if (currentEventType === 'rag-sources') {
+              pendingRagSourcesRef.current = data as RagSource[]
+              currentEventType = ''
+              continue
             }
+
+            if (currentEventType === 'rag-status') {
+              pendingRagDegradedRef.current = data.status === 'degraded'
+              currentEventType = ''
+              continue
+            }
+
+            currentEventType = ''
+
+            if (typeof data.text === 'string') {
+              if (data.replace) {
+                fullText = data.text
+                fullTextRef.current = data.text
+                drainPosRef.current = data.text.length
+                setMessages((prev) => [
+                  ...prev.slice(0, -1),
+                  {
+                    role: 'assistant',
+                    content: data.text,
+                    ragSources: pendingRagSourcesRef.current.length > 0 ? pendingRagSourcesRef.current : undefined,
+                    ragDegraded: pendingRagDegradedRef.current || undefined,
+                  },
+                ])
+              } else {
+                if (!isStreamingRef.current) {
+                  isStreamingRef.current = true
+                  setIsStreaming(true)
+                }
+
+                fullText += data.text
+                fullTextRef.current = fullText
+                startDrain()
+              }
+            }
+          } catch {
+            currentEventType = ''
           }
         }
       }
 
-      // Stream ended — signal drain to flush remaining words
-      isStreamingRef.current = false;
+      isStreamingRef.current = false
 
-      // Fallback: if stream ended but no text was received, show error
       if (!fullText) {
-        const errorMsg = t.error;
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === 'assistant' && last.content === '') {
-            return [
-              ...prev.slice(0, -1),
-              { role: 'assistant', content: errorMsg },
-            ];
-          }
-          return prev;
-        });
+        setMessages((prev) => [
+          ...prev.slice(0, -1),
+          { role: 'assistant', content: TEXT.error },
+        ])
       }
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return;
-      const isOffline = !navigator.onLine || (err instanceof Error && err.message === 'offline');
-      const errorMsg = isOffline ? t.offline : t.error;
-      // Clear streaming state on error
-      fullTextRef.current = '';
-      drainPosRef.current = 0;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
+
+      fullTextRef.current = ''
+      drainPosRef.current = 0
       if (drainTimerRef.current) {
-        clearInterval(drainTimerRef.current);
-        drainTimerRef.current = null;
+        clearInterval(drainTimerRef.current)
+        drainTimerRef.current = null
       }
-      setIsStreaming(false);
-      isStreamingRef.current = false;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === 'assistant' && last.content === '') {
-          return [
-            ...prev.slice(0, -1),
-            { role: 'assistant', content: errorMsg },
-          ];
-        }
-        return [...prev, { role: 'assistant', content: errorMsg }];
-      });
+      setIsStreaming(false)
+      isStreamingRef.current = false
+
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { role: 'assistant', content: !navigator.onLine ? TEXT.offline : TEXT.error },
+      ])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  const handleStartVoice = () => {
+    setMode('voice')
+    voiceMode.start(messages, 'en', sessionId, location.pathname)
+  }
+
+  const handleStopVoice = () => {
+    const transcript = voiceMode.state.transcript
+    if (transcript.length > 0) {
+      setMessages((prev) => [
+        ...prev,
+        ...transcript.map((item) => ({
+          role: item.role,
+          content: item.text,
+        })),
+      ])
+      setShowPrompts(false)
     }
-  };
+    voiceMode.stop()
+    setMode('text')
+  }
 
-  const handlePromptClick = (query: string) => {
-    sendMessage(query);
-  };
+  const navigateToSource = (source: RagSource) => {
+    const targetPath = source.page_path_en || '/'
+    const targetHash = source.section_anchor || ''
+    const fullTarget = `${targetPath}${targetHash}`
 
-  if (immersive) return null;
+    if (location.pathname === targetPath && targetHash) {
+      const element = document.querySelector(targetHash)
+      if (element instanceof HTMLElement) {
+        element.scrollIntoView({ behavior: 'instant' })
+        element.classList.remove('hash-highlight')
+        void element.offsetWidth
+        element.classList.add('hash-highlight')
+        element.addEventListener('animationend', () => element.classList.remove('hash-highlight'), { once: true })
+      }
+    } else {
+      if (isMobile) setIsOpen(false)
+      navigate(fullTarget)
+    }
+  }
+
+  const canStartVoice = !isLoading && !isStreaming && voiceMode.isSupported
 
   return (
     <>
-      {/* Chat Button - avatar con animación sutil */}
       <motion.button
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
         onClick={() => {
-          if (isOpen) abortRef.current?.abort();
-          setIsOpen(!isOpen);
+          if (isOpen) abortRef.current?.abort()
+          setIsOpen((value) => !value)
         }}
         className="fixed z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
         style={{
           bottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px) + 0.5rem)',
           right: 'max(1.5rem, env(safe-area-inset-right, 0px) + 0.5rem)',
         }}
-        aria-label={lang === 'en' ? (isOpen ? 'Close chat with Santi' : 'Open chat with Santi') : (isOpen ? 'Cerrar chat con Santi' : 'Abrir chat con Santi')}
+        aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -576,7 +530,7 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
               transition={{ duration: 0.2 }}
               className="w-full h-full rounded-full bg-gradient-theme flex items-center justify-center"
             >
-              <X className="w-6 h-6 text-white" aria-hidden="true" />
+              <X className="w-6 h-6 text-white" />
             </motion.div>
           ) : (
             <motion.div
@@ -587,45 +541,31 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
               transition={{ duration: 0.2 }}
               className="relative w-full h-full"
             >
-              {/* Avatar */}
-              <picture>
-                <source srcSet="/foto-avatar-sm.webp" type="image/webp" />
-                <img
-                  src="/foto-avatar-sm.webp"
-                  alt={lang === 'en' ? 'Chat with Santi' : 'Chat con Santi'}
-                  className="w-full h-full rounded-full object-cover"
-                  width={56}
-                  height={56}
-                />
-              </picture>
-              {/* Pulse ring animation */}
+              <img
+                src="/ankit-headshot.jpeg"
+                alt="Chat with AI Ankit"
+                className="w-full h-full rounded-full object-cover"
+                width={56}
+                height={56}
+              />
               <motion.div
                 className="absolute inset-0 rounded-full border-2 border-primary"
-                animate={{
-                  scale: [1, 1.15, 1],
-                  opacity: [0.7, 0, 0.7],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
+                animate={{ scale: [1, 1.15, 1], opacity: [0.7, 0, 0.7] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
               />
-              {/* Online indicator */}
               <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
             </motion.div>
           )}
         </AnimatePresence>
       </motion.button>
 
-      {/* Chat Panel - Fullscreen en móvil, flotante en desktop */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen ? (
           <motion.div
             ref={chatContainerRef}
             role="dialog"
             aria-modal="true"
-            aria-label={lang === 'en' ? 'Chat with Santi' : 'Chat con Santi'}
+            aria-label="AI chat with Ankit"
             initial={isMobile ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.95 }}
             animate={isMobile ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={isMobile ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.95 }}
@@ -633,68 +573,55 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
             className={`fixed z-50 flex flex-col bg-card border-border shadow-2xl ${
               isMobile
                 ? 'inset-0 h-dvh rounded-none border-0 overscroll-contain'
-                : 'bottom-24 right-6 w-[360px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl border overflow-hidden'
+                : 'bottom-24 right-6 w-[380px] max-w-[calc(100vw-3rem)] h-[540px] max-h-[calc(100vh-8rem)] rounded-2xl border overflow-hidden'
             }`}
           >
-            {/* Header - con avatar y botón de cerrar en móvil */}
             <div
               className="p-4 border-b border-border bg-gradient-theme-10 flex items-center justify-between"
-              style={
-                isMobile
-                  ? { paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' }
-                  : undefined
-              }
+              style={isMobile ? { paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))' } : undefined}
             >
               <div className="flex items-center gap-3">
-                <picture>
-                  <source srcSet="/foto-avatar-sm.webp" type="image/webp" />
-                  <img
-                    src="/foto-avatar-sm.webp"
-                    alt="santifer avatar"
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
-                    width={40}
-                    height={40}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </picture>
+                <img
+                  src="/ankit-headshot.jpeg"
+                  alt="Ankit avatar"
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
+                  width={40}
+                  height={40}
+                />
                 <div>
-                  <h3 className="font-display font-semibold text-foreground">
-                    {t.title}
-                  </h3>
+                  <h3 className="font-display font-semibold text-foreground">{TEXT.title}</h3>
                   <p className="text-xs text-muted-foreground">
-                    {mode === 'voice' ? getVoiceStatusText() || t.subtitle : t.subtitle}
+                    {mode === 'voice' ? getVoiceStatusText() || TEXT.subtitle : TEXT.subtitle}
                   </p>
                 </div>
               </div>
+
               <div className="flex items-center gap-2">
-                {/* Mode indicator (subtle icon) */}
-                {mode === 'voice' && (
+                {mode === 'voice' ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center"
                   >
-                    <Mic className="w-3 h-3 text-red-400" aria-hidden="true" />
+                    <Mic className="w-3 h-3 text-red-400" />
                   </motion.div>
-                )}
-                {isMobile && (
+                ) : null}
+                {isMobile ? (
                   <button
                     onClick={() => {
-                      if (mode === 'voice') handleStopVoice();
-                      abortRef.current?.abort();
-                      setIsOpen(false);
+                      if (mode === 'voice') handleStopVoice()
+                      abortRef.current?.abort()
+                      setIsOpen(false)
                     }}
                     className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     aria-label="Close chat"
                   >
-                    <ChevronDown className="w-5 h-5" aria-hidden="true" />
+                    <ChevronDown className="w-5 h-5" />
                   </button>
-                )}
+                ) : null}
               </div>
             </div>
 
-            {/* Content area — text messages or voice orb */}
             <AnimatePresence mode="wait">
               {mode === 'text' ? (
                 <motion.div
@@ -703,54 +630,40 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  aria-live="polite"
-                  className={`flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar overscroll-contain ${
-                    isMobile ? 'pb-2' : ''
-                  }`}
+                  className={`flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar overscroll-contain ${isMobile ? 'pb-2' : ''}`}
                 >
-                  {messages.map((message, i) =>
-                    // Skip empty assistant messages (they show the loading indicator instead)
-                    message.role === 'assistant' &&
-                    message.content === '' ? null : (
+                  {messages.map((message, index) =>
+                    message.role === 'assistant' && message.content === '' ? null : (
                       <motion.div
-                        key={i}
+                        key={`${message.role}-${index}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
+                        transition={{ delay: index * 0.03 }}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className="max-w-[85%]">
-                          {/* Degradation banner */}
-                          {message.role === 'assistant' && message.ragDegraded && (
+                        <div className="max-w-[86%]">
+                          {message.role === 'assistant' && message.ragDegraded ? (
                             <div className={`mb-1 px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 ${isMobile ? 'text-xs' : 'text-[11px]'}`}>
-                              {lang === 'en'
-                                ? 'Answering without full access to my articles.'
-                                : 'Respondiendo sin acceso completo a mis artículos.'}
+                              {TEXT.ragDegraded}
                             </div>
-                          )}
+                          ) : null}
+
                           <div
                             className={`px-4 py-2.5 rounded-2xl leading-relaxed ${
                               message.role === 'user'
                                 ? 'bg-gradient-theme text-white rounded-br-md'
                                 : 'bg-muted text-foreground rounded-bl-md'
                             } ${isMobile ? 'text-base' : 'text-sm'} ${
-                              isStreaming && i === messages.length - 1 && message.role === 'assistant'
+                              isStreaming && index === messages.length - 1 && message.role === 'assistant'
                                 ? 'streaming-cursor'
                                 : ''
                             }`}
-                            aria-busy={isStreaming && i === messages.length - 1 && message.role === 'assistant' ? true : undefined}
                           >
                             {message.role === 'assistant' ? (
                               <ReactMarkdown
                                 components={{
-                                  strong: ({ children }) => (
-                                    <strong className="font-semibold text-primary">
-                                      {children}
-                                    </strong>
-                                  ),
-                                  p: ({ children }) => (
-                                    <p className="mb-3 last:mb-0">{children}</p>
-                                  ),
+                                  strong: ({ children }) => <strong className="font-semibold text-primary">{children}</strong>,
+                                  p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
                                   a: ({ href, children }) => (
                                     <a
                                       href={href}
@@ -762,20 +675,9 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                                     </a>
                                   ),
                                 }}
-                                urlTransform={(url) => {
-                                  // Auto-linkify emails
-                                  if (url.includes('@') && !url.startsWith('mailto:')) {
-                                    return `mailto:${url}`;
-                                  }
-                                  // Add https:// if missing
-                                  if (!url.startsWith('http') && !url.startsWith('mailto:')) {
-                                    return `https://${url}`;
-                                  }
-                                  return url;
-                                }}
                               >
                                 {linkifyUrls(
-                                  isStreaming && i === messages.length - 1
+                                  isStreaming && index === messages.length - 1
                                     ? autoCloseMarkdown(message.content)
                                     : message.content
                                 )}
@@ -784,128 +686,82 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                               message.content
                             )}
                           </div>
-                          {/* RAG source badges — shown after streaming completes */}
-                          {message.role === 'assistant' && message.ragSources && message.ragSources.length > 0 && !isLoading && !isStreaming && (
-                            <div className="flex flex-wrap gap-1.5 mt-2 px-1">
-                              {message.ragSources.map((source, si) => {
-                                const targetPath = lang === 'es' ? source.page_path_es : source.page_path_en;
-                                const sectionLabels = getSectionLabels()[targetPath] || {};
-                                const anchorId = source.section_anchor.replace(/^#/, '');
-                                const sectionName = sectionLabels[anchorId] || '';
-                                const articleName = getPageTitles()[targetPath] || source.article_id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                                const isCurrentPage = location.pathname === targetPath;
 
-                                return (
-                                  <button
-                                    key={`${source.article_id}-${source.section_id}-${si}`}
-                                    onClick={() => {
-                                      if (isCurrentPage && source.section_anchor) {
-                                        const el = document.querySelector(source.section_anchor);
-                                        if (el instanceof HTMLElement) {
-                                          el.scrollIntoView({ behavior: 'instant' });
-                                          el.classList.remove('hash-highlight');
-                                          void el.offsetWidth;
-                                          el.classList.add('hash-highlight');
-                                          el.addEventListener('animationend', () => el.classList.remove('hash-highlight'), { once: true });
-                                        }
-                                      } else if (targetPath) {
-                                        if (isMobile) setIsOpen(false);
-                                        navigate(targetPath + (source.section_anchor || ''));
-                                      }
-                                    }}
-                                    className={`flex items-start gap-1.5 rounded-full font-medium text-left bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${
-                                      isMobile
-                                        ? 'px-3 py-1.5 text-xs'
-                                        : 'px-2.5 py-1 text-[10px]'
-                                    }`}
-                                  >
-                                    <FileText className="w-3 h-3 shrink-0" />
-                                    {articleName}{sectionName ? ` · ${sectionName}` : ''}
-                                  </button>
-                                );
-                              })}
+                          {message.role === 'assistant' && message.ragSources && message.ragSources.length > 0 && !isLoading && !isStreaming ? (
+                            <div className="flex flex-wrap gap-1.5 mt-2 px-1">
+                              {message.ragSources.map((source, sourceIndex) => (
+                                <button
+                                  key={`${source.article_id}-${source.section_id}-${sourceIndex}`}
+                                  onClick={() => navigateToSource(source)}
+                                  className={`flex items-center gap-1.5 rounded-full font-medium text-left bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${
+                                    isMobile ? 'px-3 py-1.5 text-xs' : 'px-2.5 py-1 text-[10px]'
+                                  }`}
+                                >
+                                  <FileText className="w-3 h-3 shrink-0" />
+                                  {sourceLabel(source)}
+                                </button>
+                              ))}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </motion.div>
-                    ),
+                    )
                   )}
 
-                  {/* Quick Prompts - animación estilo Story, colores originales */}
-                  {showPrompts && !isLoading && (
+                  {showPrompts && !isLoading ? (
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      transition={{ duration: 0.45 }}
                       className={`flex flex-wrap gap-2 pt-2 ${isMobile ? 'gap-2.5' : ''}`}
                     >
-                      {t.prompts.map((prompt, i) => (
-                        <button
-                          key={i}
-                          onClick={() => handlePromptClick(prompt.query)}
-                          className={`flex items-center gap-1.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${
-                            isMobile
-                              ? 'px-4 py-2.5 text-sm min-h-[44px]'
-                              : 'px-3 py-1.5 text-xs'
-                          }`}
-                        >
-                          <PromptIcon icon={prompt.icon} />
-                          {prompt.label}
-                        </button>
-                      ))}
+                      {TEXT.prompts.map((prompt) => {
+                        const Icon = prompt.icon
+                        return (
+                          <button
+                            key={prompt.label}
+                            onClick={() => sendMessage(prompt.query)}
+                            className={`flex items-center gap-1.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${
+                              isMobile ? 'px-4 py-2.5 text-sm min-h-[44px]' : 'px-3 py-1.5 text-xs'
+                            }`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {prompt.label}
+                          </button>
+                        )
+                      })}
                     </motion.div>
-                  )}
+                  ) : null}
 
-                  {/* Contact CTA after 2+ exchanges */}
-                  {userMessageCount >= 2 && !isLoading && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.3 }}
-                      className="pt-3"
-                    >
+                  {userMessageCount >= 2 && !isLoading ? (
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="pt-3">
                       <div className="p-3 rounded-xl bg-gradient-theme-10 border border-primary/20 text-center">
-                        <p className="text-sm font-medium text-foreground mb-2">
-                          {t.contactCtaTitle}
-                        </p>
+                        <p className="text-sm font-medium text-foreground mb-2">{TEXT.contactCtaTitle}</p>
                         <a
-                          href={`mailto:${translations[lang].email}`}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-theme-r text-white text-sm font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 active:brightness-95 transition-all duration-200"
+                          href="mailto:ankit.das@sewanee.edu"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-theme-r text-white text-sm font-medium hover:brightness-110 transition-all"
                         >
-                          <Mail className="w-4 h-4" aria-hidden="true" />
-                          {translations[lang].email}
+                          <Mail className="w-4 h-4" />
+                          ankit.das@sewanee.edu
                         </a>
                       </div>
                     </motion.div>
-                  )}
+                  ) : null}
 
-                  {isLoading && messages[messages.length - 1]?.content === '' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex justify-start"
-                    >
-                      <div
-                        className={`bg-muted px-4 py-2.5 rounded-2xl rounded-bl-md flex items-center gap-2 ${
-                          isMobile ? 'py-3' : ''
-                        }`}
-                      >
-                        <Loader2
-                          className={`text-muted-foreground animate-spin ${isMobile ? 'w-5 h-5' : 'w-4 h-4'}`}
-                          aria-hidden="true"
-                        />
-                        <span
-                          className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-xs'}`}
-                        >
-                          {translations[lang].ui.typingIndicator}
+                  {isLoading && messages[messages.length - 1]?.content === '' ? (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
+                      <div className={`bg-muted px-4 py-2.5 rounded-2xl rounded-bl-md flex items-center gap-2 ${isMobile ? 'py-3' : ''}`}>
+                        <Loader2 className={`text-muted-foreground animate-spin ${isMobile ? 'w-5 h-5' : 'w-4 h-4'}`} />
+                        <span className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-xs'}`}>
+                          {TEXT.typingIndicator}
                         </span>
                       </div>
                     </motion.div>
-                  )}
+                  ) : null}
+
                   <div ref={messagesEndRef} />
                 </motion.div>
               ) : (
-                /* Voice mode — orb centered */
                 <motion.div
                   key="voice-mode"
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -923,52 +779,30 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                     transcript={undefined}
                     isMobile={isMobile}
                   />
-
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Source badges in voice mode — positioned at bottom above input */}
-            {mode === 'voice' && voiceMode.voiceSources.length > 0 && (
+            {mode === 'voice' && voiceMode.voiceSources.length > 0 ? (
               <div className="flex flex-wrap justify-center gap-1.5 px-4 py-2 border-t border-border/50 bg-card/80">
-                {voiceMode.voiceSources.map((source, si) => {
-                  const targetPath = lang === 'es' ? source.page_path_es : source.page_path_en;
-                  const sectionLabels = getSectionLabels()[targetPath] || {};
-                  const anchorId = source.section_anchor.replace(/^#/, '');
-                  const sectionName = sectionLabels[anchorId] || '';
-                  const articleName = getPageTitles()[targetPath] || source.article_id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-                  return (
-                    <button
-                      key={`voice-${source.article_id}-${si}`}
-                      onClick={() => {
-                        if (targetPath) {
-                          navigate(targetPath + (source.section_anchor || ''));
-                        }
-                      }}
-                      className={`flex items-center gap-1.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${
-                        isMobile ? 'px-3 py-1.5 text-xs' : 'px-2.5 py-1 text-[10px]'
-                      }`}
-                    >
-                      <FileText className="w-3 h-3 shrink-0" />
-                      {articleName}{sectionName ? ` · ${sectionName}` : ''}
-                    </button>
-                  );
-                })}
+                {voiceMode.voiceSources.map((source, index) => (
+                  <button
+                    key={`voice-${source.article_id}-${index}`}
+                    onClick={() => navigateToSource(source)}
+                    className={`flex items-center gap-1.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:bg-primary/30 transition-colors duration-200 ${
+                      isMobile ? 'px-3 py-1.5 text-xs' : 'px-2.5 py-1 text-[10px]'
+                    }`}
+                  >
+                    <FileText className="w-3 h-3 shrink-0" />
+                    {sourceLabel(source)}
+                  </button>
+                ))}
               </div>
-            )}
+            ) : null}
 
-            {/* Input area — transforms between text and voice modes */}
             <div
               className="p-4 border-t border-border bg-card"
-              style={
-                isMobile
-                  ? {
-                      paddingBottom:
-                        'max(1rem, env(safe-area-inset-bottom, 0px))',
-                    }
-                  : undefined
-              }
+              style={isMobile ? { paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' } : undefined}
             >
               {mode === 'text' ? (
                 <div className="flex gap-2">
@@ -976,10 +810,15 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                     ref={inputRef}
                     type="text"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={t.placeholder}
-                    aria-label={t.placeholder}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault()
+                        sendMessage()
+                      }
+                    }}
+                    placeholder={TEXT.placeholder}
+                    aria-label={TEXT.placeholder}
                     disabled={isLoading}
                     enterKeyHint="send"
                     autoComplete="off"
@@ -988,71 +827,84 @@ export default function FloatingChat({ lang }: FloatingChatProps) {
                       isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
                     }`}
                   />
-                  {/* Mic button */}
-                  {canStartVoice && (
+
+                  {canStartVoice ? (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleStartVoice}
                       disabled={isLoading || isStreaming}
-                      aria-label={v.start}
-                      title={v.start}
-                      className={`rounded-xl bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                      aria-label={TEXT.voice.start}
+                      title={TEXT.voice.start}
+                      className={`rounded-xl bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 disabled:opacity-50 transition-colors ${
                         isMobile ? 'w-12 h-12' : 'w-10 h-10'
                       }`}
                     >
-                      <Mic className={isMobile ? 'w-5 h-5' : 'w-4 h-4'} aria-hidden="true" />
+                      <Mic className={isMobile ? 'w-5 h-5' : 'w-4 h-4'} />
                     </motion.button>
-                  )}
-                  {/* Send button */}
+                  ) : null}
+
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => sendMessage()}
                     disabled={isLoading || !input.trim()}
-                    aria-label={lang === 'en' ? 'Send message' : 'Enviar mensaje'}
-                    className={`rounded-xl bg-gradient-theme flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed transition-opacity ${
+                    aria-label="Send message"
+                    className={`rounded-xl bg-gradient-theme flex items-center justify-center text-white disabled:opacity-50 transition-opacity ${
                       isMobile ? 'w-12 h-12' : 'w-10 h-10'
                     }`}
                   >
-                    <Send className={isMobile ? 'w-5 h-5' : 'w-4 h-4'} aria-hidden="true" />
+                    <Send className={isMobile ? 'w-5 h-5' : 'w-4 h-4'} />
                   </motion.button>
                 </div>
               ) : (
-                /* Voice mode controls */
                 <div className="flex gap-2 justify-center">
-                  {/* Switch to text */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleSwitchToText}
-                    aria-label={v.switchToText}
-                    className={`rounded-xl bg-muted border border-border flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors ${
-                      isMobile ? 'px-4 py-3 text-sm' : 'px-3 py-2.5 text-xs'
-                    }`}
-                  >
-                    <MessageSquare className={isMobile ? 'w-4 h-4' : 'w-3.5 h-3.5'} aria-hidden="true" />
-                    {v.switchToText}
-                  </motion.button>
-                  {/* End voice session */}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleStopVoice}
-                    aria-label={v.stop}
-                    className={`rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-400 hover:bg-red-500/20 hover:border-red-500/30 transition-colors ${
+                    aria-label={TEXT.voice.switchToText}
+                    className={`rounded-xl bg-muted border border-border flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors ${
                       isMobile ? 'px-4 py-3 text-sm' : 'px-3 py-2.5 text-xs'
                     }`}
                   >
-                    <PhoneOff className={isMobile ? 'w-4 h-4' : 'w-3.5 h-3.5'} aria-hidden="true" />
-                    {v.stop}
+                    <MessageSquare className={isMobile ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
+                    {TEXT.voice.switchToText}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleStopVoice}
+                    aria-label={TEXT.voice.stop}
+                    className={`rounded-xl bg-red-500/15 border border-red-500/20 flex items-center gap-2 text-red-300 hover:bg-red-500/20 transition-colors ${
+                      isMobile ? 'px-4 py-3 text-sm' : 'px-3 py-2.5 text-xs'
+                    }`}
+                  >
+                    <PhoneOff className={isMobile ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
+                    {TEXT.voice.stop}
                   </motion.button>
                 </div>
               )}
+
+              {mode === 'text' ? (
+                <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-primary" />
+                    Text + voice portfolio assistant
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/#contact')}
+                    className="hover:text-primary transition-colors"
+                  >
+                    Contact
+                  </button>
+                </div>
+              ) : null}
             </div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
-  );
+  )
 }

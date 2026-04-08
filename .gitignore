@@ -50,3 +50,6 @@ chatbot/.playwright-mcp/
 # RAG
 .rag-hashes.json
 scripts/chunks/
+
+# gstack local data (security reports, session state — keep off GitHub)
+.gstack/
